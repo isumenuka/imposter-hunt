@@ -2,8 +2,20 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Imposter Hunt</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#a855f7" />
+    <meta name="description" content="A thrilling multiplayer party game where you hunt the imposter!" />
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- iOS Specific PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Imposter Hunt" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -48,10 +60,23 @@
         --accent-pink: #ec4899;
       }
       
+      * {
+        -webkit-tap-highlight-color: rgba(168, 85, 247, 0.2);
+        -webkit-touch-callout: none;
+      }
+      
       body {
         font-family: 'Inter', sans-serif;
         overscroll-behavior: none;
         background: var(--bg-primary);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        touch-action: pan-x pan-y;
+      }
+      
+      /* Prevent zoom on input focus (mobile) */
+      input, select, textarea {
+        font-size: 16px !important;
       }
       
       /* Custom scrollbar */
@@ -100,6 +125,27 @@
       .animation-delay-4000 {
         animation-delay: 4s;
       }
+      
+      /* PWA Install Prompt */
+      .install-prompt {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        animation: slideUp 0.3s ease-out;
+      }
+      
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateX(-50%) translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0);
+        }
+      }
     </style>
   <script type="importmap">
 {
@@ -118,5 +164,20 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+              console.log('SW registered:', registration);
+            })
+            .catch(error => {
+              console.log('SW registration failed:', error);
+            });
+        });
+      }
+    </script>
   </body>
 </html>

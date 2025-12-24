@@ -6,6 +6,8 @@ import { aiService } from './aiService';
 declare const Peer: any;
 
 const PEER_PREFIX = 'imposter-hunt-game-v1-';
+const STORAGE_KEY = 'imposter-hunt-game-state';
+const SAVE_DEBOUNCE_MS = 500;
 
 // Initial empty state
 const initialState: RoomState = {
@@ -39,8 +41,13 @@ class GameService {
     // Client variables (Online)
     private hostConnection: any = null;
 
+    // State persistence
+    private saveTimeout: number | null = null;
+
     constructor() {
-        this.state = initialState;
+        // Try to restore state from localStorage
+        const savedState = this.loadState();
+        this.state = savedState || initialState;
 
         // Attempt to recover player ID
         const savedId = sessionStorage.getItem('imposter_player_id');
@@ -49,6 +56,9 @@ class GameService {
             this.playerId = crypto.randomUUID();
             sessionStorage.setItem('imposter_player_id', this.playerId);
         }
+
+        // Set up state persistence listeners
+        this.setupStatePersistence();
     }
 
     public getPlayerId(): string {
@@ -74,6 +84,88 @@ class GameService {
         if (this.state.gameMode === 'ONLINE' && this.isHost) {
             this.broadcastState();
         }
+
+        // Save state with debouncing
+        this.debouncedSaveState();
+    }
+
+    // =========================================
+    // STATE PERSISTENCE
+    // =========================================
+
+    private loadState(): RoomState | null {
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                console.log('State restored from localStorage');
+                return parsed;
+            }
+        } catch (error) {
+            console.error('Failed to load state:', error);
+            localStorage.removeItem(STORAGE_KEY);
+        }
+        return null;
+    }
+
+    private saveState() {
+        try {
+            // Don't save if we're in initial disconnected state
+            if (this.state.connectionStatus === 'DISCONNECTED' && this.state.players.length === 0) {
+                return;
+            }
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
+            console.log('State saved to localStorage');
+        } catch (error) {
+            console.error('Failed to save state:', error);
+        }
+    }
+
+    private debouncedSaveState() {
+        if (this.saveTimeout !== null) {
+            clearTimeout(this.saveTimeout);
+        }
+        this.saveTimeout = window.setTimeout(() => {
+            this.saveState();
+            this.saveTimeout = null;
+        }, SAVE_DEBOUNCE_MS);
+    }
+
+    private setupStatePersistence() {
+        // Save state before page unload
+        window.addEventListener('beforeunload', () => {
+            this.saveState();
+        });
+
+        // Save state when app goes to background (mobile)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                console.log('App backgrounded - saving state');
+                this.saveState();
+            } else {
+                console.log('App foregrounded');
+                // For online mode, we might want to check connection status
+                if (this.state.gameMode === 'ONLINE' && this.state.connectionStatus === 'DISCONNECTED') {
+                    console.warn('Connection lost while app was backgrounded');
+                }
+            }
+        });
+
+        // Handle tab freeze on mobile
+        window.addEventListener('freeze', () => {
+            console.log('Tab frozen - saving state');
+            this.saveState();
+        });
+
+        // Handle tab resume on mobile
+        window.addEventListener('resume', () => {
+            console.log('Tab resumed');
+        });
+    }
+
+    public clearSavedState() {
+        localStorage.removeItem(STORAGE_KEY);
+        console.log('Saved state cleared');
     }
 
     // =========================================
@@ -334,6 +426,8 @@ class GameService {
                     activePlayerId: undefined,
                     isTurnHidden: false
                 });
+                // Clear saved state on reset
+                this.clearSavedState();
                 break;
 
             case 'REVEAL_TURN':
