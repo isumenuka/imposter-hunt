@@ -244,6 +244,22 @@ class GameService {
                 this.setState({ config: { ...this.state.config, ...action.payload } });
                 break;
 
+            case 'UPDATE_PLAYER_CATEGORIES':
+                const { playerId, categories } = action.payload;
+                const updatedPlayersWithCategories = this.state.players.map(p =>
+                    p.id === playerId ? { ...p, selectedCategories: categories } : p
+                );
+
+                const allSelectedCategories = Array.from(
+                    new Set(updatedPlayersWithCategories.flatMap(p => p.selectedCategories || []))
+                );
+
+                this.setState({
+                    players: updatedPlayersWithCategories,
+                    config: { ...this.state.config, selectedCategories: allSelectedCategories }
+                });
+                break;
+
             case 'GO_TO_SETTINGS':
                 this.setState({ phase: GamePhase.SETTINGS });
                 break;
@@ -306,7 +322,8 @@ class GameService {
             case 'RESET_GAME':
                 this.setState({
                     phase: GamePhase.LOBBY,
-                    players: this.state.players.map(p => ({ ...p, role: undefined, vote: undefined, isReady: undefined })),
+                    players: this.state.players.map(p => ({ ...p, role: undefined, vote: undefined, isReady: undefined, selectedCategories: undefined })),
+                    config: { ...this.state.config, selectedCategories: [] },
                     startTime: undefined,
                     firstSpeakerId: undefined,
                     winners: undefined,
@@ -462,6 +479,10 @@ class GameService {
 
     public updateSettings(settings: Partial<GameConfig>) {
         this.sendAction({ type: 'UPDATE_SETTINGS', payload: settings });
+    }
+
+    public updatePlayerCategories(playerId: string, categories: string[]) {
+        this.sendAction({ type: 'UPDATE_PLAYER_CATEGORIES', payload: { playerId, categories } });
     }
 
     public goToSettings() {

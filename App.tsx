@@ -77,6 +77,7 @@ const App: React.FC = () => {
                 config={roomState.config}
                 playerCount={roomState.players.length}
                 error={roomState.error}
+                roomState={roomState}
             />
         );
 

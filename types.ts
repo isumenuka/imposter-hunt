@@ -15,6 +15,7 @@ export interface Player {
   role?: 'innocent' | 'imposter';
   vote?: string; // ID of the player they voted for
   isReady?: boolean; // Used during reveal phase
+  selectedCategories?: string[]; // Categories this player wants to play
 }
 
 export interface GameConfig {
@@ -49,14 +50,15 @@ export interface GameStateMessage {
   payload: RoomState;
 }
 
-export type GameActionType = 
-  | 'JOIN_REQUEST' 
-  | 'UPDATE_SETTINGS' 
+export type GameActionType =
+  | 'JOIN_REQUEST'
+  | 'UPDATE_SETTINGS'
+  | 'UPDATE_PLAYER_CATEGORIES'
   | 'GO_TO_SETTINGS'
-  | 'START_GAME' 
-  | 'PLAYER_READY' 
-  | 'START_VOTING' 
-  | 'CAST_VOTE' 
+  | 'START_GAME'
+  | 'PLAYER_READY'
+  | 'START_VOTING'
+  | 'CAST_VOTE'
   | 'RESET_GAME'
   // Offline specific
   | 'ADD_OFFLINE_PLAYER'

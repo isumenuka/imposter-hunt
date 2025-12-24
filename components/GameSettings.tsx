@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { GameConfig } from '../types';
+import { GameConfig, RoomState } from '../types';
 import { gameService } from '../services/gameService';
 import { Button } from './Button';
 import { GAME_CATEGORIES } from '../constants';
@@ -9,17 +9,25 @@ interface Props {
   config: GameConfig;
   playerCount: number;
   error?: string;
+  roomState?: RoomState;
 }
 
-export const GameSettings: React.FC<Props> = ({ isHost, config, playerCount, error }) => {
+export const GameSettings: React.FC<Props> = ({ isHost, config, playerCount, error, roomState }) => {
   const [localConfig, setLocalConfig] = useState<GameConfig>(config);
   const [isStarting, setIsStarting] = useState(false);
+  const myPlayerId = gameService.getPlayerId();
+  const myPlayer = roomState?.players.find(p => p.id === myPlayerId);
+  const isOnline = roomState?.gameMode === 'ONLINE';
 
   useEffect(() => {
     if (error) {
       setIsStarting(false);
     }
   }, [error]);
+
+  useEffect(() => {
+    setLocalConfig(config);
+  }, [config]);
 
   const update = (key: keyof GameConfig, value: any) => {
     const newConfig = { ...localConfig, [key]: value };
@@ -28,14 +36,25 @@ export const GameSettings: React.FC<Props> = ({ isHost, config, playerCount, err
   };
 
   const toggleCategory = (cat: string) => {
+    if (isOnline) {
+      const myCategories = myPlayer?.selectedCategories || [];
+      let next: string[];
+      if (myCategories.includes(cat)) {
+        next = myCategories.filter(c => c !== cat);
+      } else {
+        next = [...myCategories, cat];
+      }
+      gameService.updatePlayerCategories(myPlayerId, next);
+    } else {
       const current = localConfig.selectedCategories || [];
       let next: string[];
       if (current.includes(cat)) {
-          next = current.filter(c => c !== cat);
+        next = current.filter(c => c !== cat);
       } else {
-          next = [...current, cat];
+        next = [...current, cat];
       }
       update('selectedCategories', next);
+    }
   };
 
   const handleStart = async () => {
@@ -43,30 +62,16 @@ export const GameSettings: React.FC<Props> = ({ isHost, config, playerCount, err
     gameService.startGame(localConfig);
   };
 
-  if (!isHost) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full p-8 text-center space-y-8">
-        <div className="relative">
-            <div className="text-6xl animate-bounce filter drop-shadow-lg">⚙️</div>
-            <div className="absolute -bottom-2 w-full h-2 bg-black/20 rounded-full blur-md"></div>
-        </div>
-        <h2 className="text-3xl font-bold text-slate-800 dark:text-white">Host is configuring...</h2>
-        <div className="space-y-3 w-full max-w-sm">
-            {[
-                { l: 'Categories', v: `${config.selectedCategories?.length || 0} selected` },
-                { l: 'Imposters', v: config.imposterCount },
-                { l: 'Hints', v: config.imposterClueEnabled ? 'ON' : 'OFF' },
-                { l: 'Time', v: `${config.roundDuration / 60} min` }
-            ].map((item) => (
-                <div key={item.l} className="flex justify-between bg-white/40 dark:bg-slate-800/40 p-4 rounded-xl border border-white/30 dark:border-white/5 backdrop-blur-sm">
-                    <span className="text-slate-600 dark:text-slate-400 font-medium">{item.l}</span>
-                    <span className="text-slate-900 dark:text-white font-bold">{item.v}</span>
-                </div>
-            ))}
-        </div>
-      </div>
-    );
-  }
+  const getPlayersForCategory = (category: string) => {
+    return roomState?.players.filter(p => p.selectedCategories?.includes(category)) || [];
+  };
+
+  const isCategorySelected = (cat: string) => {
+    if (isOnline) {
+      return myPlayer?.selectedCategories?.includes(cat) || false;
+    }
+    return localConfig.selectedCategories?.includes(cat) || false;
+  };
 
   const selectedCount = localConfig.selectedCategories?.length || 0;
 
@@ -79,53 +84,82 @@ export const GameSettings: React.FC<Props> = ({ isHost, config, playerCount, err
       <div className="bg-white/40 dark:bg-slate-800/40 p-6 rounded-3xl space-y-4 border border-white/40 dark:border-white/10 backdrop-blur-md shadow-sm">
         <div className="flex justify-between items-end">
              <h3 className="text-slate-500 dark:text-slate-400 font-bold text-xs tracking-wider uppercase pl-1">
-                 Select Categories ({selectedCount})
+                 {isOnline ? 'Vote for Categories' : 'Select Categories'} ({selectedCount})
              </h3>
              <span className="text-[10px] text-slate-400">Game picks one at random</span>
         </div>
-        
+
         <div className="grid grid-cols-2 gap-2">
             {GAME_CATEGORIES.map(cat => {
-                const isSelected = localConfig.selectedCategories?.includes(cat);
+                const selected = isCategorySelected(cat);
+                const playersWhoSelected = isOnline ? getPlayersForCategory(cat) : [];
                 return (
                     <button
                         key={cat}
                         onClick={() => toggleCategory(cat)}
                         className={`
-                            px-3 py-3 rounded-xl text-sm font-bold transition-all duration-200 border flex items-center justify-between group
-                            ${isSelected 
-                                ? 'bg-blue-500 text-white border-blue-400 shadow-md shadow-blue-500/20' 
+                            px-3 py-3 rounded-xl text-sm font-bold transition-all duration-200 border flex flex-col items-start gap-2 group relative
+                            ${selected
+                                ? 'bg-blue-500 text-white border-blue-400 shadow-md shadow-blue-500/20'
                                 : 'bg-white/40 dark:bg-black/20 text-slate-600 dark:text-slate-300 border-white/20 dark:border-white/5 hover:bg-white/60 dark:hover:bg-black/40'}
                         `}
                     >
-                        <span>{cat}</span>
-                        <span className={`w-4 h-4 rounded-full border flex items-center justify-center text-[10px] ${isSelected ? 'bg-white text-blue-500 border-transparent' : 'border-slate-400 dark:border-slate-500'}`}>
-                            {isSelected && '✓'}
-                        </span>
+                        <div className="flex items-center justify-between w-full">
+                            <span>{cat}</span>
+                            <span className={`w-4 h-4 rounded-full border flex items-center justify-center text-[10px] flex-shrink-0 ${selected ? 'bg-white text-blue-500 border-transparent' : 'border-slate-400 dark:border-slate-500'}`}>
+                                {selected && '✓'}
+                            </span>
+                        </div>
+                        {isOnline && playersWhoSelected.length > 0 && (
+                            <div className="flex gap-1 flex-wrap">
+                                {playersWhoSelected.map(player => (
+                                    <span
+                                        key={player.id}
+                                        className="text-base filter drop-shadow-sm"
+                                        title={player.name}
+                                    >
+                                        {player.avatar}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
                     </button>
                 );
             })}
         </div>
+        {isOnline && (
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 text-center">
+                Everyone can select categories. Avatars show who voted for each.
+            </p>
+        )}
       </div>
 
       <div className="bg-white/40 dark:bg-slate-800/40 p-6 rounded-3xl space-y-8 border border-white/40 dark:border-white/10 backdrop-blur-md shadow-sm">
+          {isOnline && !isHost && (
+              <div className="bg-yellow-100/50 dark:bg-yellow-900/20 p-3 rounded-xl border border-yellow-200 dark:border-yellow-900/30 text-center">
+                  <p className="text-xs text-yellow-700 dark:text-yellow-400 font-bold">Host controls other settings</p>
+              </div>
+          )}
+
           <div>
             <div className="flex justify-between items-center mb-3">
                 <label className="font-bold text-slate-800 dark:text-white">Imposters</label>
                 <span className="text-2xl font-black font-mono text-slate-900 dark:text-white">{localConfig.imposterCount}</span>
             </div>
             <div className="flex items-center gap-4 bg-white/30 dark:bg-black/20 p-2 rounded-2xl border border-white/20 dark:border-white/5">
-                <Button 
-                    className="w-10 h-10 !p-0 rounded-xl text-xl shadow-none" 
+                <Button
+                    className="w-10 h-10 !p-0 rounded-xl text-xl shadow-none"
                     variant="secondary"
+                    disabled={isOnline && !isHost}
                     onClick={() => update('imposterCount', Math.max(1, localConfig.imposterCount - 1))}
                 >-</Button>
                 <div className="flex-1 h-3 bg-slate-200 dark:bg-slate-700/50 rounded-full overflow-hidden shadow-inner">
                     <div className="bg-gradient-to-r from-red-400 to-red-600 h-full transition-all" style={{ width: `${(localConfig.imposterCount / (Math.floor(playerCount/2) || 1)) * 100}%` }}></div>
                 </div>
-                <Button 
-                    className="w-10 h-10 !p-0 rounded-xl text-xl shadow-none" 
+                <Button
+                    className="w-10 h-10 !p-0 rounded-xl text-xl shadow-none"
                     variant="secondary"
+                    disabled={isOnline && !isHost}
                     onClick={() => update('imposterCount', Math.min(Math.floor(playerCount / 2) || 1, localConfig.imposterCount + 1))}
                 >+</Button>
             </div>
@@ -135,9 +169,10 @@ export const GameSettings: React.FC<Props> = ({ isHost, config, playerCount, err
              <div className="flex justify-between items-center mb-3">
                 <label className="font-bold text-slate-800 dark:text-white">Imposter Hints</label>
             </div>
-            <button 
+            <button
                 onClick={() => update('imposterClueEnabled', !localConfig.imposterClueEnabled)}
-                className={`w-full p-4 rounded-2xl border transition-all duration-300 flex items-center justify-between group ${localConfig.imposterClueEnabled ? 'bg-purple-500/20 border-purple-500/50' : 'bg-white/30 dark:bg-black/20 border-white/20'}`}
+                disabled={isOnline && !isHost}
+                className={`w-full p-4 rounded-2xl border transition-all duration-300 flex items-center justify-between group ${localConfig.imposterClueEnabled ? 'bg-purple-500/20 border-purple-500/50' : 'bg-white/30 dark:bg-black/20 border-white/20'} ${isOnline && !isHost ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
                 <div className="flex flex-col items-start">
                     <span className={`font-bold ${localConfig.imposterClueEnabled ? 'text-purple-600 dark:text-purple-300' : 'text-slate-500 dark:text-slate-400'}`}>
@@ -159,17 +194,19 @@ export const GameSettings: React.FC<Props> = ({ isHost, config, playerCount, err
                 <span className="text-2xl font-black font-mono text-slate-900 dark:text-white">{localConfig.roundDuration / 60}m</span>
             </div>
             <div className="flex items-center gap-4 bg-white/30 dark:bg-black/20 p-2 rounded-2xl border border-white/20 dark:border-white/5">
-                <Button 
-                    className="w-10 h-10 !p-0 rounded-xl text-xl shadow-none" 
+                <Button
+                    className="w-10 h-10 !p-0 rounded-xl text-xl shadow-none"
                     variant="secondary"
+                    disabled={isOnline && !isHost}
                     onClick={() => update('roundDuration', Math.max(60, localConfig.roundDuration - 60))}
                 >-</Button>
                 <div className="flex-1 h-3 bg-slate-200 dark:bg-slate-700/50 rounded-full overflow-hidden shadow-inner">
                     <div className="bg-gradient-to-r from-blue-400 to-blue-600 h-full transition-all" style={{ width: `${(localConfig.roundDuration / 600) * 100}%` }}></div>
                 </div>
-                <Button 
-                    className="w-10 h-10 !p-0 rounded-xl text-xl shadow-none" 
+                <Button
+                    className="w-10 h-10 !p-0 rounded-xl text-xl shadow-none"
                     variant="secondary"
+                    disabled={isOnline && !isHost}
                     onClick={() => update('roundDuration', Math.min(600, localConfig.roundDuration + 60))}
                 >+</Button>
             </div>
