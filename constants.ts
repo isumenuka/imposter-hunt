@@ -1,5 +1,5 @@
 export const AVATARS = [
-  '🕵️', '👽', '🤖', '🦊', '🦄', '🐼', '🦁', '🐸', 
+  '🕵️', '👽', '🤖', '🦊', '🦄', '🐼', '🦁', '🐸',
   '👻', '💀', '🤡', '🤠', '🎃', '😈', '👮', '🧛'
 ];
 
@@ -18,4 +18,4 @@ export const GAME_CATEGORIES = [
 
 export const DEFAULT_ROUND_DURATION = 180; // 3 minutes
 export const DEFAULT_IMPOSTER_COUNT = 1;
-export const DEFAULT_IMPOSTER_CLUE_ENABLED = true;
+export const DEFAULT_ASSOCIATION_WORD_ENABLED = true;

@@ -23,9 +23,9 @@ export interface GameConfig {
   selectedCategories: string[]; // The pool of categories the host ticked
   roundDuration: number; // in seconds
   imposterCount: number;
-  imposterClueEnabled: boolean; // Toggle for showing clues to imposters
+  associationWordEnabled: boolean; // Toggle for showing association word to imposters
   word?: string; // The secret word
-  imposterClue?: string; // Hint for the imposter
+  associationWord?: string; // Ambiguous association word for the imposter
 }
 
 export interface RoomState {

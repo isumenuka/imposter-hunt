@@ -1,75 +1,75 @@
 import OpenAI from 'openai';
 
-const FALLBACK_WORDS: Record<string, Array<{ word: string; clue: string }>> = {
+const FALLBACK_WORDS: Record<string, Array<{ word: string; associationWord: string }>> = {
   'Animals': [
-    { word: 'Dog', clue: 'Two legs or four legs?' },
-    { word: 'Cat', clue: 'Whiskers and nine lives' },
-    { word: 'Lion', clue: 'Golden hue in savanna' },
-    { word: 'Elephant', clue: 'Memory and water' },
-    { word: 'Tiger', clue: 'Stripes in the jungle' }
+    { word: 'Dog', associationWord: 'Bark' },
+    { word: 'Cat', associationWord: 'Purr' },
+    { word: 'Lion', associationWord: 'King' },
+    { word: 'Elephant', associationWord: 'Trunk' },
+    { word: 'Tiger', associationWord: 'Stripes' }
   ],
   'Foods': [
-    { word: 'Pizza', clue: 'Circular and molten' },
-    { word: 'Burger', clue: 'Stack of layers' },
-    { word: 'Pasta', clue: 'Twists and turns' },
-    { word: 'Sushi', clue: 'Rolled in wrapper' },
-    { word: 'Chocolate', clue: 'Sweet darkness' }
+    { word: 'Pizza', associationWord: 'Friday' },
+    { word: 'Burger', associationWord: 'Patty' },
+    { word: 'Pasta', associationWord: 'Italy' },
+    { word: 'Sushi', associationWord: 'Roll' },
+    { word: 'Chocolate', associationWord: 'Bar' }
   ],
   'Brands': [
-    { word: 'Apple', clue: 'Fruit from tree' },
-    { word: 'Nike', clue: 'Just swoosh' },
-    { word: 'McDonald\'s', clue: 'Golden arches shape' },
-    { word: 'Coca-Cola', clue: 'Red fizzy liquid' },
-    { word: 'Starbucks', clue: 'Siren in coffee' }
+    { word: 'Apple', associationWord: 'Bite' },
+    { word: 'Nike', associationWord: 'Swoosh' },
+    { word: 'McDonald\'s', associationWord: 'Golden' },
+    { word: 'Coca-Cola', associationWord: 'Red' },
+    { word: 'Starbucks', associationWord: 'Siren' }
   ],
   'Objects': [
-    { word: 'Phone', clue: 'Screen and buttons' },
-    { word: 'Car', clue: 'Wheels and engine' },
-    { word: 'Laptop', clue: 'Hinges and keyboard' },
-    { word: 'Watch', clue: 'Ticking on wrist' },
-    { word: 'Book', clue: 'Paper and binding' }
+    { word: 'Phone', associationWord: 'Ring' },
+    { word: 'Car', associationWord: 'Drive' },
+    { word: 'Laptop', associationWord: 'Keyboard' },
+    { word: 'Watch', associationWord: 'Time' },
+    { word: 'Book', associationWord: 'Page' }
   ],
   'Anime': [
-    { word: 'Naruto', clue: 'Spiral and seal' },
-    { word: 'One Piece', clue: 'Sea and treasure map' },
-    { word: 'Dragon Ball', clue: 'Spheres and power' },
-    { word: 'Pokemon', clue: 'Pocket monsters catch' },
-    { word: 'Attack on Titan', clue: 'Height and walls' }
+    { word: 'Naruto', associationWord: 'Ramen' },
+    { word: 'One Piece', associationWord: 'Treasure' },
+    { word: 'Dragon Ball', associationWord: 'Sphere' },
+    { word: 'Pokemon', associationWord: 'Catch' },
+    { word: 'Attack on Titan', associationWord: 'Wall' }
   ],
   'Video Games': [
-    { word: 'Fortnite', clue: 'Build or fight' },
-    { word: 'Minecraft', clue: 'Cubes everywhere' },
-    { word: 'GTA', clue: 'Grand and theft' },
-    { word: 'FIFA', clue: 'Kick ball goal' },
-    { word: 'Roblox', clue: 'Mini games platform' }
+    { word: 'Fortnite', associationWord: 'Storm' },
+    { word: 'Minecraft', associationWord: 'Block' },
+    { word: 'GTA', associationWord: 'City' },
+    { word: 'FIFA', associationWord: 'Goal' },
+    { word: 'Roblox', associationWord: 'Build' }
   ],
   'TV Shows': [
-    { word: 'Friends', clue: 'Couch and coffee' },
-    { word: 'Stranger Things', clue: 'Upside and down' },
-    { word: 'Breaking Bad', clue: 'Chemistry and transformation' },
-    { word: 'The Office', clue: 'Desk and mundane' },
-    { word: 'Game of Thrones', clue: 'Iron throne battle' }
+    { word: 'Friends', associationWord: 'Central' },
+    { word: 'Stranger Things', associationWord: 'Eleven' },
+    { word: 'Breaking Bad', associationWord: 'Chemistry' },
+    { word: 'The Office', associationWord: 'Paper' },
+    { word: 'Game of Thrones', associationWord: 'Winter' }
   ],
   'Celebrities': [
-    { word: 'Messi', clue: 'Left foot magic' },
-    { word: 'Ronaldo', clue: 'Jump and speed' },
-    { word: 'Taylor Swift', clue: 'Red era music' },
-    { word: 'The Rock', clue: 'Muscles and comedy' },
-    { word: 'Beyonce', clue: 'Queen formation' }
+    { word: 'Messi', associationWord: 'Barcelona' },
+    { word: 'Ronaldo', associationWord: 'Seven' },
+    { word: 'Taylor Swift', associationWord: 'Thirteen' },
+    { word: 'The Rock', associationWord: 'Eyebrow' },
+    { word: 'Beyonce', associationWord: 'Queen' }
   ],
   'Locations': [
-    { word: 'Paris', clue: 'Tower and light' },
-    { word: 'New York', clue: 'Big and bright' },
-    { word: 'Tokyo', clue: 'Neon and crowds' },
-    { word: 'London', clue: 'Clock and bridge' },
-    { word: 'Dubai', clue: 'Desert and gold' }
+    { word: 'Paris', associationWord: 'Eiffel' },
+    { word: 'New York', associationWord: 'Apple' },
+    { word: 'Tokyo', associationWord: 'Rising' },
+    { word: 'London', associationWord: 'Big' },
+    { word: 'Dubai', associationWord: 'Gold' }
   ],
   'Movies': [
-    { word: 'Titanic', clue: 'Water and sinking' },
-    { word: 'Avatar', clue: 'Blue and alien' },
-    { word: 'Spider-Man', clue: 'Web and climb' },
-    { word: 'Frozen', clue: 'Ice and sisters' },
-    { word: 'Avengers', clue: 'Assemble together' }
+    { word: 'Titanic', associationWord: 'Iceberg' },
+    { word: 'Avatar', associationWord: 'Blue' },
+    { word: 'Spider-Man', associationWord: 'Web' },
+    { word: 'Frozen', associationWord: 'Ice' },
+    { word: 'Avengers', associationWord: 'Assemble' }
   ]
 };
 
@@ -84,7 +84,7 @@ class AIService {
     });
   }
 
-  private getFallbackContent(category: string): { word: string; clue: string } {
+  private getFallbackContent(category: string): { word: string; associationWord: string } {
     const categoryWords = FALLBACK_WORDS[category];
     if (!categoryWords || categoryWords.length === 0) {
       const allWords = Object.values(FALLBACK_WORDS).flat();
@@ -97,13 +97,14 @@ class AIService {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  async generateGameContent(category: string): Promise<{ word: string, clue: string }> {
-    const prompt = `You are generating content for a social deduction party game called "Imposter Hunt".
+  async generateGameContent(category: string): Promise<{ word: string, associationWord: string }> {
+    const prompt = `You are generating content for a social deception party game called "Imposter Hunt".
 
 CRITICAL RULES:
 1. Secret word MUST be EXTREMELY POPULAR and EVERYONE knows it
-2. Imposter clue MUST be SHORT (maximum 5-7 words)
-3. Use simple, famous, mainstream things only
+2. Association word MUST be a SINGLE WORD (or max 2 words) that is AMBIGUOUS
+3. Association word should NOT reveal the secret word or category
+4. Association word should be conceptually related but require context to understand
 
 SECRET WORD for category "${category}":
 
@@ -118,17 +119,17 @@ SECRET WORD for category "${category}":
 - Locations: Paris, New York, Tokyo, London, Dubai, Egypt, Australia
 - Animals: Dog, Cat, Lion, Elephant, Tiger, Dolphin, Eagle, Snake
 
-IMPOSTER CLUE (keep it SHORT and SIMPLE):
-- "Battle royale shooter" (for Fortnite/PUBG)
-- "Round food with cheese" (for Pizza)
-- "Big ship that sank" (for Titanic)
-- "Popular social media app" (for Instagram)
-- "Big cat with mane" (for Lion)
+ASSOCIATION WORD (single ambiguous word):
+- Pizza → "Friday" (could be day of week OR TGI Friday's)
+- Lion → "King" (could be royalty OR animal)
+- Fortnite → "Storm" (could be weather OR game mechanic)
+- Messi → "Barcelona" (could be city OR team)
+- Paris → "Tower" (could be any tower)
 
 Return ONLY valid JSON:
 {
   "secretWord": "ONE popular word from ${category}",
-  "imposterClue": "SHORT hint (5-7 words max)"
+  "associationWord": "SINGLE ambiguous word (1-2 words max)"
 }`;
 
     const maxRetries = 2;
@@ -163,13 +164,13 @@ Return ONLY valid JSON:
 
         const json = JSON.parse(jsonMatch[0]);
 
-        if (!json.secretWord || !json.imposterClue) {
+        if (!json.secretWord || !json.associationWord) {
           throw new Error("Invalid response format");
         }
 
         return {
           word: json.secretWord,
-          clue: json.imposterClue
+          associationWord: json.associationWord
         };
       } catch (error: any) {
         lastError = error;

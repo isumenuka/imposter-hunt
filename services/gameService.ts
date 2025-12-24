@@ -1,5 +1,5 @@
 import { RoomState, GamePhase, Player, GameConfig, GameAction, GameStateMessage } from '../types';
-import { DEFAULT_ROUND_DURATION, DEFAULT_IMPOSTER_COUNT, DEFAULT_IMPOSTER_CLUE_ENABLED, GAME_CATEGORIES, AVATARS } from '../constants';
+import { DEFAULT_ROUND_DURATION, DEFAULT_IMPOSTER_COUNT, DEFAULT_ASSOCIATION_WORD_ENABLED, GAME_CATEGORIES, AVATARS } from '../constants';
 import { aiService } from './aiService';
 
 // Declare PeerJS type
@@ -20,7 +20,7 @@ const initialState: RoomState = {
         selectedCategories: [], // Empty by default - host must select categories
         roundDuration: DEFAULT_ROUND_DURATION,
         imposterCount: DEFAULT_IMPOSTER_COUNT,
-        imposterClueEnabled: DEFAULT_IMPOSTER_CLUE_ENABLED,
+        associationWordEnabled: DEFAULT_ASSOCIATION_WORD_ENABLED,
     },
     connectionStatus: 'DISCONNECTED',
     activePlayerId: undefined,
@@ -166,6 +166,28 @@ class GameService {
     public clearSavedState() {
         localStorage.removeItem(STORAGE_KEY);
         console.log('Saved state cleared');
+    }
+
+    public resetToInitialState() {
+        // Clear saved state from localStorage
+        this.clearSavedState();
+
+        // Reset to initial state
+        this.state = { ...initialState };
+        this.isHost = false;
+
+        // Clear any connections
+        if (this.peer) {
+            this.peer.destroy();
+            this.peer = null;
+        }
+        this.connections = [];
+        this.hostConnection = null;
+
+        // Notify listeners of the reset
+        this.notify();
+
+        console.log('Game reset to initial state');
     }
 
     // =========================================
@@ -453,7 +475,7 @@ class GameService {
 
         try {
             // Generate word using the CHOSEN category
-            const { word, clue } = await aiService.generateGameContent(randomCategory);
+            const { word, associationWord } = await aiService.generateGameContent(randomCategory);
 
             const update: Partial<RoomState> = {
                 phase: GamePhase.REVEAL,
@@ -461,7 +483,7 @@ class GameService {
                     ...config,
                     category: randomCategory,
                     word,
-                    imposterClue: config.imposterClueEnabled ? clue : undefined
+                    associationWord: config.associationWordEnabled ? associationWord : undefined
                 },
                 players: assignedPlayers,
                 startTime: undefined,
