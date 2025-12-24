@@ -2,74 +2,74 @@ import OpenAI from 'openai';
 
 const FALLBACK_WORDS: Record<string, Array<{ word: string; clue: string }>> = {
   'Animals': [
-    { word: 'Dog', clue: 'Two legs or four legs?' },
-    { word: 'Cat', clue: 'Whiskers and nine lives' },
-    { word: 'Lion', clue: 'Golden hue in savanna' },
-    { word: 'Elephant', clue: 'Memory and water' },
-    { word: 'Tiger', clue: 'Stripes in the jungle' }
+    { word: 'Dog', clue: 'Bone' },
+    { word: 'Cat', clue: 'Whiskers' },
+    { word: 'Lion', clue: 'King' },
+    { word: 'Elephant', clue: 'Memory' },
+    { word: 'Tiger', clue: 'Stripes' }
   ],
   'Foods': [
-    { word: 'Pizza', clue: 'Circular and molten' },
-    { word: 'Burger', clue: 'Stack of layers' },
-    { word: 'Pasta', clue: 'Twists and turns' },
-    { word: 'Sushi', clue: 'Rolled in wrapper' },
-    { word: 'Chocolate', clue: 'Sweet darkness' }
+    { word: 'Pizza', clue: 'Friday' },
+    { word: 'Burger', clue: 'King' },
+    { word: 'Pasta', clue: 'Italy' },
+    { word: 'Sushi', clue: 'Roll' },
+    { word: 'Chocolate', clue: 'Sweet' }
   ],
   'Brands': [
-    { word: 'Apple', clue: 'Fruit from tree' },
-    { word: 'Nike', clue: 'Just swoosh' },
-    { word: 'McDonald\'s', clue: 'Golden arches shape' },
-    { word: 'Coca-Cola', clue: 'Red fizzy liquid' },
-    { word: 'Starbucks', clue: 'Siren in coffee' }
+    { word: 'Apple', clue: 'Bite' },
+    { word: 'Nike', clue: 'Wings' },
+    { word: 'McDonald\'s', clue: 'Golden' },
+    { word: 'Coca-Cola', clue: 'Red' },
+    { word: 'Starbucks', clue: 'Green' }
   ],
   'Objects': [
-    { word: 'Phone', clue: 'Screen and buttons' },
-    { word: 'Car', clue: 'Wheels and engine' },
-    { word: 'Laptop', clue: 'Hinges and keyboard' },
-    { word: 'Watch', clue: 'Ticking on wrist' },
-    { word: 'Book', clue: 'Paper and binding' }
+    { word: 'Phone', clue: 'Ring' },
+    { word: 'Car', clue: 'Drive' },
+    { word: 'Laptop', clue: 'Portable' },
+    { word: 'Watch', clue: 'Time' },
+    { word: 'Book', clue: 'Pages' }
   ],
   'Anime': [
-    { word: 'Naruto', clue: 'Spiral and seal' },
-    { word: 'One Piece', clue: 'Sea and treasure map' },
-    { word: 'Dragon Ball', clue: 'Spheres and power' },
-    { word: 'Pokemon', clue: 'Pocket monsters catch' },
-    { word: 'Attack on Titan', clue: 'Height and walls' }
+    { word: 'Naruto', clue: 'Ninja' },
+    { word: 'One Piece', clue: 'Treasure' },
+    { word: 'Dragon Ball', clue: 'Power' },
+    { word: 'Pokemon', clue: 'Catch' },
+    { word: 'Attack on Titan', clue: 'Giant' }
   ],
   'Video Games': [
-    { word: 'Fortnite', clue: 'Build or fight' },
-    { word: 'Minecraft', clue: 'Cubes everywhere' },
-    { word: 'GTA', clue: 'Grand and theft' },
-    { word: 'FIFA', clue: 'Kick ball goal' },
-    { word: 'Roblox', clue: 'Mini games platform' }
+    { word: 'Fortnite', clue: 'Battle' },
+    { word: 'Minecraft', clue: 'Block' },
+    { word: 'GTA', clue: 'City' },
+    { word: 'FIFA', clue: 'Goal' },
+    { word: 'Roblox', clue: 'Create' }
   ],
   'TV Shows': [
-    { word: 'Friends', clue: 'Couch and coffee' },
-    { word: 'Stranger Things', clue: 'Upside and down' },
-    { word: 'Breaking Bad', clue: 'Chemistry and transformation' },
-    { word: 'The Office', clue: 'Desk and mundane' },
-    { word: 'Game of Thrones', clue: 'Iron throne battle' }
+    { word: 'Friends', clue: 'Coffee' },
+    { word: 'Stranger Things', clue: 'Eleven' },
+    { word: 'Breaking Bad', clue: 'Blue' },
+    { word: 'The Office', clue: 'Paper' },
+    { word: 'Game of Thrones', clue: 'Winter' }
   ],
   'Celebrities': [
-    { word: 'Messi', clue: 'Left foot magic' },
-    { word: 'Ronaldo', clue: 'Jump and speed' },
-    { word: 'Taylor Swift', clue: 'Red era music' },
-    { word: 'The Rock', clue: 'Muscles and comedy' },
-    { word: 'Beyonce', clue: 'Queen formation' }
+    { word: 'Messi', clue: 'Argentina' },
+    { word: 'Ronaldo', clue: 'Number' },
+    { word: 'Taylor Swift', clue: 'Red' },
+    { word: 'The Rock', clue: 'Stone' },
+    { word: 'Beyonce', clue: 'Queen' }
   ],
   'Locations': [
-    { word: 'Paris', clue: 'Tower and light' },
-    { word: 'New York', clue: 'Big and bright' },
-    { word: 'Tokyo', clue: 'Neon and crowds' },
-    { word: 'London', clue: 'Clock and bridge' },
-    { word: 'Dubai', clue: 'Desert and gold' }
+    { word: 'Paris', clue: 'Tower' },
+    { word: 'New York', clue: 'Apple' },
+    { word: 'Tokyo', clue: 'Neon' },
+    { word: 'London', clue: 'Bridge' },
+    { word: 'Dubai', clue: 'Gold' }
   ],
   'Movies': [
-    { word: 'Titanic', clue: 'Water and sinking' },
-    { word: 'Avatar', clue: 'Blue and alien' },
-    { word: 'Spider-Man', clue: 'Web and climb' },
-    { word: 'Frozen', clue: 'Ice and sisters' },
-    { word: 'Avengers', clue: 'Assemble together' }
+    { word: 'Titanic', clue: 'Ship' },
+    { word: 'Avatar', clue: 'Blue' },
+    { word: 'Spider-Man', clue: 'Web' },
+    { word: 'Frozen', clue: 'Ice' },
+    { word: 'Avengers', clue: 'Assemble' }
   ]
 };
 
@@ -102,8 +102,9 @@ class AIService {
 
 CRITICAL RULES:
 1. Secret word MUST be EXTREMELY POPULAR and EVERYONE knows it
-2. Imposter clue MUST be SHORT (maximum 5-7 words)
-3. Use simple, famous, mainstream things only
+2. Association word MUST be a SINGLE WORD that is deliberately AMBIGUOUS without knowing the category
+3. The association word should relate to the secret word but could also fit OTHER categories
+4. Use simple, famous, mainstream things only
 
 SECRET WORD for category "${category}":
 
@@ -118,17 +119,20 @@ SECRET WORD for category "${category}":
 - Locations: Paris, New York, Tokyo, London, Dubai, Egypt, Australia
 - Animals: Dog, Cat, Lion, Elephant, Tiger, Dolphin, Eagle, Snake
 
-IMPOSTER CLUE (keep it SHORT and SIMPLE):
-- "Battle royale shooter" (for Fortnite/PUBG)
-- "Round food with cheese" (for Pizza)
-- "Big ship that sank" (for Titanic)
-- "Popular social media app" (for Instagram)
-- "Big cat with mane" (for Lion)
+ASSOCIATION WORD EXAMPLES (deliberately ambiguous single words):
+- "Friday" for Pizza (could be day of week OR pizza night)
+- "King" for Lion (could be royalty OR Lion King)
+- "Ring" for Phone (could be jewelry OR phone ringing)
+- "Battle" for Fortnite (could be war/combat OR battle royale)
+- "Tower" for Paris (could be tall structure OR Eiffel Tower)
+- "Blue" for Avatar (could be color OR blue aliens)
+- "Bite" for Apple (could be eating OR Apple logo)
+- "Ice" for Frozen (could be cold water OR Disney movie)
 
 Return ONLY valid JSON:
 {
   "secretWord": "ONE popular word from ${category}",
-  "imposterClue": "SHORT hint (5-7 words max)"
+  "imposterClue": "ONE ambiguous word"
 }`;
 
     const maxRetries = 2;
