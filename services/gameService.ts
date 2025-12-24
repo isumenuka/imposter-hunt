@@ -45,16 +45,29 @@ class GameService {
     private saveTimeout: number | null = null;
 
     constructor() {
-        // Try to restore state from localStorage
-        const savedState = this.loadState();
-        this.state = savedState || initialState;
-
-        // Attempt to recover player ID
+        // Attempt to recover player ID FIRST
         const savedId = sessionStorage.getItem('imposter_player_id');
         if (savedId) this.playerId = savedId;
         else {
             this.playerId = crypto.randomUUID();
             sessionStorage.setItem('imposter_player_id', this.playerId);
+        }
+
+        // Try to restore state from localStorage
+        const savedState = this.loadState();
+
+        // Validate restored state - if player not found in online mode beyond lobby, reset
+        if (savedState && savedState.gameMode === 'ONLINE' && savedState.phase !== GamePhase.LOBBY) {
+            const playerExists = savedState.players.some(p => p.id === this.playerId);
+            if (!playerExists) {
+                console.log('Player not found in saved state, resetting to lobby');
+                this.clearSavedState();
+                this.state = initialState;
+            } else {
+                this.state = savedState;
+            }
+        } else {
+            this.state = savedState || initialState;
         }
 
         // Set up state persistence listeners

@@ -113,7 +113,13 @@ const App: React.FC = () => {
         );
 
       case GamePhase.REVEAL:
-        if (!currentPlayer) return <div>Error: Player not found</div>;
+        if (!currentPlayer) {
+          gameService.resetToInitialState();
+          return <div className="flex flex-col items-center justify-center h-full p-8">
+            <div className="text-6xl mb-4">🔄</div>
+            <p className="text-slate-500 dark:text-slate-400">Returning to lobby...</p>
+          </div>;
+        }
         return (
           <SecretReveal
             player={currentPlayer}
@@ -123,11 +129,23 @@ const App: React.FC = () => {
         );
 
       case GamePhase.DISCUSSION:
-        if (!currentPlayer) return <div>Error: Player not found</div>;
+        if (!currentPlayer) {
+          gameService.resetToInitialState();
+          return <div className="flex flex-col items-center justify-center h-full p-8">
+            <div className="text-6xl mb-4">🔄</div>
+            <p className="text-slate-500 dark:text-slate-400">Returning to lobby...</p>
+          </div>;
+        }
         return <Discussion roomState={roomState} currentPlayer={currentPlayer} />;
 
       case GamePhase.VOTING:
-        if (!currentPlayer) return <div>Error: Player not found</div>;
+        if (!currentPlayer) {
+          gameService.resetToInitialState();
+          return <div className="flex flex-col items-center justify-center h-full p-8">
+            <div className="text-6xl mb-4">🔄</div>
+            <p className="text-slate-500 dark:text-slate-400">Returning to lobby...</p>
+          </div>;
+        }
         return <Voting roomState={roomState} currentPlayer={currentPlayer} />;
 
       case GamePhase.RESULTS:
