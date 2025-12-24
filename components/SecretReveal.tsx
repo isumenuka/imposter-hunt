@@ -98,7 +98,7 @@ export const SecretReveal: React.FC<Props> = ({ player, secretWord, imposterClue
             ${isInnocent ? 'bg-slate-100/50 dark:bg-slate-700/30' : 'bg-red-100/50 dark:bg-red-900/20'}
           `}>
              <p className="text-xs uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2 font-bold">
-                 {isInnocent ? 'Secret Word' : showClue ? 'Association Word' : 'Mission'}
+                 {isInnocent ? 'Secret Word' : showClue ? 'Hint Clue' : 'Mission'}
              </p>
              <p className="text-4xl font-black text-slate-900 dark:text-white leading-tight">
                {isInnocent ? secretWord : (showClue ? imposterClue : 'Blend In')}

@@ -167,22 +167,22 @@ export const GameSettings: React.FC<Props> = ({ isHost, config, playerCount, err
 
           <div>
              <div className="flex justify-between items-center mb-3">
-                <label className="font-bold text-slate-800 dark:text-white">Association Word</label>
+                <label className="font-bold text-slate-800 dark:text-white">Imposter Hints</label>
             </div>
             <button
                 onClick={() => update('imposterClueEnabled', !localConfig.imposterClueEnabled)}
                 disabled={isOnline && !isHost}
-                className={`w-full p-4 rounded-2xl border transition-all duration-300 flex items-center justify-between group ${localConfig.imposterClueEnabled ? 'bg-green-500/20 border-green-500/50' : 'bg-white/30 dark:bg-black/20 border-white/20'} ${isOnline && !isHost ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`w-full p-4 rounded-2xl border transition-all duration-300 flex items-center justify-between group ${localConfig.imposterClueEnabled ? 'bg-purple-500/20 border-purple-500/50' : 'bg-white/30 dark:bg-black/20 border-white/20'} ${isOnline && !isHost ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
                 <div className="flex flex-col items-start">
-                    <span className={`font-bold ${localConfig.imposterClueEnabled ? 'text-green-600 dark:text-green-300' : 'text-slate-500 dark:text-slate-400'}`}>
+                    <span className={`font-bold ${localConfig.imposterClueEnabled ? 'text-purple-600 dark:text-purple-300' : 'text-slate-500 dark:text-slate-400'}`}>
                         {localConfig.imposterClueEnabled ? 'Enabled' : 'Disabled'}
                     </span>
                     <span className="text-[10px] text-slate-500 dark:text-slate-400">
-                        {localConfig.imposterClueEnabled ? 'Imposters see one ambiguous word' : 'Imposters see nothing (Hard Mode)'}
+                        {localConfig.imposterClueEnabled ? 'Imposters see a vague hint' : 'Imposters see nothing (Hard Mode)'}
                     </span>
                 </div>
-                <div className={`w-12 h-7 rounded-full p-1 transition-colors duration-300 relative ${localConfig.imposterClueEnabled ? 'bg-green-500' : 'bg-slate-400/50'}`}>
+                <div className={`w-12 h-7 rounded-full p-1 transition-colors duration-300 relative ${localConfig.imposterClueEnabled ? 'bg-purple-500' : 'bg-slate-400/50'}`}>
                     <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${localConfig.imposterClueEnabled ? 'translate-x-5' : 'translate-x-0'}`}></div>
                 </div>
             </button>
