@@ -225,9 +225,15 @@ export const GameSettings: React.FC<Props> = ({ isHost, config, playerCount, err
         </div>
       )}
 
-      <Button fullWidth onClick={handleStart} className="mt-auto shadow-xl" disabled={isStarting || selectedCount === 0}>
-        {isStarting ? 'Generating Round...' : selectedCount === 0 ? 'Select a Category' : error ? 'Try Again' : 'Start Game ▷'}
-      </Button>
+      {isHost ? (
+        <Button fullWidth onClick={handleStart} className="mt-auto shadow-xl" disabled={isStarting || selectedCount === 0}>
+          {isStarting ? 'Generating Round...' : selectedCount === 0 ? 'Select a Category' : error ? 'Try Again' : 'Start Game ▷'}
+        </Button>
+      ) : (
+        <div className="text-center text-slate-500 dark:text-slate-400 animate-pulse pb-4 text-sm font-medium">
+          Waiting for host to start...
+        </div>
+      )}
     </div>
   );
 };
