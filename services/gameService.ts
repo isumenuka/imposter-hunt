@@ -1,5 +1,5 @@
 import { RoomState, GamePhase, Player, GameConfig, GameAction, GameStateMessage } from '../types';
-import { DEFAULT_ROUND_DURATION, DEFAULT_IMPOSTER_COUNT, DEFAULT_IMPOSTER_CLUE_ENABLED, GAME_CATEGORIES } from '../constants';
+import { DEFAULT_ROUND_DURATION, DEFAULT_IMPOSTER_COUNT, DEFAULT_IMPOSTER_CLUE_ENABLED, GAME_CATEGORIES, AVATARS } from '../constants';
 import { aiService } from './aiService';
 
 // Declare PeerJS type
@@ -261,7 +261,11 @@ class GameService {
                 break;
 
             case 'GO_TO_SETTINGS':
-                this.setState({ phase: GamePhase.SETTINGS });
+                const playersWithUniqueAvatars = this.assignUniqueAvatars(this.state.players);
+                this.setState({
+                    phase: GamePhase.SETTINGS,
+                    players: playersWithUniqueAvatars
+                });
                 break;
 
             case 'START_GAME':
@@ -397,6 +401,14 @@ class GameService {
             role: (indices.indexOf(index) < imposterCount ? 'imposter' : 'innocent') as 'imposter' | 'innocent',
             isReady: false,
             vote: undefined
+        }));
+    }
+
+    private assignUniqueAvatars(players: Player[]): Player[] {
+        const shuffledAvatars = [...AVATARS].sort(() => Math.random() - 0.5);
+        return players.map((p, index) => ({
+            ...p,
+            avatar: shuffledAvatars[index % shuffledAvatars.length]
         }));
     }
 

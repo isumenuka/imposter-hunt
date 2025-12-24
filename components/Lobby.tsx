@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Player, RoomState } from '../types';
 import { gameService } from '../services/gameService';
-import { AvatarSelector } from './AvatarSelector';
 import { Button } from './Button';
 
 interface Props {
@@ -11,8 +10,6 @@ interface Props {
 
 export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
   const [name, setName] = useState('');
-  const [avatar, setAvatar] = useState('🕵️');
-  const [showAvatarSelector, setShowAvatarSelector] = useState(false);
   const [mode, setMode] = useState<'MAIN' | 'JOIN_INPUT'>('MAIN');
   const [inputCode, setInputCode] = useState('');
   const [isBusy, setIsBusy] = useState(false);
@@ -25,9 +22,8 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
       
       const handleAddOfflinePlayer = () => {
           if (!name.trim()) return;
-          gameService.addOfflinePlayer(name.trim(), avatar);
+          gameService.addOfflinePlayer(name.trim(), '👤');
           setName('');
-          setAvatar('🕵️'); 
       };
 
       return (
@@ -58,24 +54,6 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
 
             {/* Add Player Form */}
             <div className="bg-white/50 dark:bg-slate-800/40 p-4 rounded-3xl border border-white/40 dark:border-white/10 shadow-lg space-y-4 backdrop-blur-md">
-                 <button 
-                  onClick={() => setShowAvatarSelector(!showAvatarSelector)}
-                  className="w-full bg-white/50 dark:bg-black/20 p-3 rounded-2xl flex items-center justify-between hover:bg-white/80 dark:hover:bg-black/40 transition-colors border border-white/20 dark:border-white/5"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-3xl filter drop-shadow-sm">{avatar}</span>
-                    <span className="text-slate-600 dark:text-slate-300 font-bold text-sm">Change Avatar</span>
-                  </div>
-                  <span className="text-slate-400">▼</span>
-                </button>
-
-                {showAvatarSelector && (
-                  <AvatarSelector 
-                    selectedAvatar={avatar} 
-                    onSelect={(a) => { setAvatar(a); setShowAvatarSelector(false); }} 
-                  />
-                )}
-
                 <div className="flex gap-2">
                     <input
                       type="text"
@@ -183,7 +161,7 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
       const player: Player = {
           id: gameService.getPlayerId(),
           name: name.trim(),
-          avatar,
+          avatar: '👤',
           isHost: true
       };
       try {
@@ -200,7 +178,7 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
       const player: Player = {
           id: gameService.getPlayerId(),
           name: name.trim(),
-          avatar,
+          avatar: '👤',
           isHost: false
       };
       try {
@@ -226,24 +204,6 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
          </div>
 
          <div className="space-y-4">
-            
-            {/* Avatar & Name Input */}
-            <button 
-              onClick={() => setShowAvatarSelector(!showAvatarSelector)}
-              className="w-full bg-white/50 dark:bg-slate-800/40 p-4 rounded-2xl flex items-center justify-between hover:bg-white/70 dark:hover:bg-slate-700/50 transition-colors border border-white/40 dark:border-white/10 group"
-            >
-              <div className="flex items-center gap-4">
-                <span className="text-4xl filter drop-shadow-md group-hover:scale-110 transition-transform">{avatar}</span>
-                <span className="text-slate-600 dark:text-slate-300 font-bold">Tap to choose avatar</span>
-              </div>
-            </button>
-
-            {showAvatarSelector && (
-              <AvatarSelector 
-                selectedAvatar={avatar} 
-                onSelect={(a) => { setAvatar(a); setShowAvatarSelector(false); }} 
-              />
-            )}
 
             <input
               type="text"

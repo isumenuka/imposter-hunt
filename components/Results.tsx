@@ -11,6 +11,9 @@ export const Results: React.FC<Props> = ({ roomState }) => {
   const impostersWon = roomState.winners === 'imposter';
   const imposters = roomState.players.filter(p => p.role === 'imposter');
 
+  const myId = gameService.getPlayerId();
+  const isHost = roomState.gameMode === 'OFFLINE' || roomState.players.find(p => p.id === myId)?.isHost;
+
   const votes: Record<string, number> = {};
   roomState.players.forEach(p => { if (p.vote) votes[p.vote] = (votes[p.vote] || 0) + 1; });
   let maxVotes = 0;
@@ -86,9 +89,15 @@ export const Results: React.FC<Props> = ({ roomState }) => {
             </div>
         </div>
 
-        <Button fullWidth onClick={() => gameService.resetGame()} variant="primary" className="shadow-xl">
-            ↺ Play Again
-        </Button>
+        {isHost ? (
+          <Button fullWidth onClick={() => gameService.resetGame()} variant="primary" className="shadow-xl">
+              ↺ Play Again
+          </Button>
+        ) : (
+          <div className="text-center text-slate-500 dark:text-slate-400 animate-pulse py-4 text-sm font-medium">
+              Waiting for host to start new game...
+          </div>
+        )}
     </div>
   );
 };
