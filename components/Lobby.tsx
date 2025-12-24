@@ -1,0 +1,300 @@
+import React, { useState } from 'react';
+import { Player, RoomState } from '../types';
+import { gameService } from '../services/gameService';
+import { AvatarSelector } from './AvatarSelector';
+import { Button } from './Button';
+
+interface Props {
+  roomState: RoomState;
+  currentPlayer: Player | null;
+}
+
+export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
+  const [name, setName] = useState('');
+  const [avatar, setAvatar] = useState('🕵️');
+  const [showAvatarSelector, setShowAvatarSelector] = useState(false);
+  const [mode, setMode] = useState<'MAIN' | 'JOIN_INPUT'>('MAIN');
+  const [inputCode, setInputCode] = useState('');
+  const [isBusy, setIsBusy] = useState(false);
+
+  const inputClass = "w-full bg-white/60 dark:bg-black/30 p-4 rounded-2xl text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-lg border border-white/30 dark:border-white/10 transition-all";
+
+  // === OFFLINE MODE LOBBY ===
+  if (roomState.gameMode === 'OFFLINE') {
+      const canStart = roomState.players.length >= 3;
+      
+      const handleAddOfflinePlayer = () => {
+          if (!name.trim()) return;
+          gameService.addOfflinePlayer(name.trim(), avatar);
+          setName('');
+          setAvatar('🕵️'); 
+      };
+
+      return (
+        <div className="flex flex-col h-full p-6 space-y-6">
+            <div className="flex justify-between items-center">
+                <h1 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
+                    Offline Setup
+                </h1>
+                <Button variant="ghost" className="!p-2 text-sm" onClick={() => window.location.reload()}>Exit</Button>
+            </div>
+            
+            {/* Player List */}
+            <div className="flex-1 overflow-y-auto space-y-2 p-2 scroll-smooth">
+                {roomState.players.length === 0 && (
+                    <div className="text-center text-slate-500 dark:text-slate-400 py-12 flex flex-col items-center">
+                        <span className="text-4xl mb-2 opacity-50">👥</span>
+                        Add at least 3 players to start
+                    </div>
+                )}
+                {roomState.players.map((p, i) => (
+                    <div key={p.id} className="flex items-center bg-white/40 dark:bg-black/20 p-3 rounded-xl animate-in slide-in-from-left-4 backdrop-blur-sm border border-white/20 dark:border-white/5" style={{ animationDelay: `${i*50}ms` }}>
+                        <span className="text-2xl mr-3 filter drop-shadow-md">{p.avatar}</span>
+                        <span className="font-bold text-slate-800 dark:text-white flex-1">{p.name}</span>
+                        <button className="text-xs text-red-500 opacity-50 hover:opacity-100 px-2">✕</button>
+                    </div>
+                ))}
+            </div>
+
+            {/* Add Player Form */}
+            <div className="bg-white/50 dark:bg-slate-800/40 p-4 rounded-3xl border border-white/40 dark:border-white/10 shadow-lg space-y-4 backdrop-blur-md">
+                 <button 
+                  onClick={() => setShowAvatarSelector(!showAvatarSelector)}
+                  className="w-full bg-white/50 dark:bg-black/20 p-3 rounded-2xl flex items-center justify-between hover:bg-white/80 dark:hover:bg-black/40 transition-colors border border-white/20 dark:border-white/5"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl filter drop-shadow-sm">{avatar}</span>
+                    <span className="text-slate-600 dark:text-slate-300 font-bold text-sm">Change Avatar</span>
+                  </div>
+                  <span className="text-slate-400">▼</span>
+                </button>
+
+                {showAvatarSelector && (
+                  <AvatarSelector 
+                    selectedAvatar={avatar} 
+                    onSelect={(a) => { setAvatar(a); setShowAvatarSelector(false); }} 
+                  />
+                )}
+
+                <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Player Name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleAddOfflinePlayer()}
+                      maxLength={12}
+                      className={`flex-1 ${inputClass} !p-3`}
+                    />
+                    <Button onClick={handleAddOfflinePlayer} disabled={!name.trim()} className="!py-3 !px-5 shadow-none">
+                        +
+                    </Button>
+                </div>
+            </div>
+
+            <Button 
+                fullWidth 
+                disabled={!canStart} 
+                onClick={() => gameService.goToSettings()}
+                className={canStart ? 'animate-pulse' : ''}
+            >
+                Continue to Settings ({roomState.players.length}) &rarr;
+            </Button>
+        </div>
+      );
+  }
+
+  // === ONLINE LOBBY (Connected) ===
+  if (currentPlayer && roomState.connectionStatus === 'CONNECTED') {
+    const isHost = currentPlayer.isHost;
+    const canStart = roomState.players.length >= 3;
+
+    return (
+      <div className="flex flex-col h-full p-6 space-y-6">
+        <div className="bg-white/50 dark:bg-slate-800/40 p-6 rounded-3xl border border-white/50 dark:border-white/10 shadow-xl backdrop-blur-md">
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-xl font-bold text-slate-800 dark:text-white">Player Lobby</h1>
+            <div className="bg-blue-100 dark:bg-blue-900/30 px-3 py-1 rounded-full text-xs font-bold text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30">
+              👥 {roomState.players.length}/12
+            </div>
+          </div>
+          <div className="text-center p-4 bg-white/60 dark:bg-black/30 rounded-2xl border border-white/30 dark:border-white/5 mb-4 relative overflow-hidden group">
+              <p className="text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-widest mb-1 font-bold">Room Code</p>
+              <p className="text-4xl font-mono font-black text-blue-600 dark:text-blue-400 tracking-widest select-all relative z-10">{roomState.roomCode}</p>
+          </div>
+          
+          <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden mb-2">
+            <div 
+              className="bg-gradient-to-r from-green-400 to-green-500 h-full transition-all duration-500 shadow-[0_0_10px_rgba(74,222,128,0.5)]" 
+              style={{ width: `${Math.min((roomState.players.length / 3) * 100, 100)}%` }}
+            />
+          </div>
+          <p className={`text-xs font-bold text-center ${canStart ? 'text-green-600 dark:text-green-400' : 'text-slate-400'}`}>
+            {canStart ? 'Ready to begin!' : `${3 - roomState.players.length} more needed`}
+          </p>
+        </div>
+
+        <div className="flex-1 overflow-y-auto space-y-3 p-1">
+          {roomState.players.map((p) => (
+            <div key={p.id} className="flex items-center bg-white/40 dark:bg-slate-800/40 p-3 rounded-2xl border border-white/40 dark:border-white/5 shadow-sm">
+              <span className="text-3xl mr-4 filter drop-shadow-sm">{p.avatar}</span>
+              <div className="flex-1">
+                <p className="font-bold text-slate-800 dark:text-white">{p.name} {p.id === currentPlayer.id && '(You)'}</p>
+                {p.isHost && <p className="text-[10px] text-yellow-600 dark:text-yellow-400 font-bold bg-yellow-100 dark:bg-yellow-900/30 inline-block px-2 py-0.5 rounded-full mt-1">HOST</p>}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {isHost ? (
+          <Button 
+            disabled={!canStart} 
+            fullWidth 
+            onClick={() => gameService.goToSettings()} 
+          >
+             Continue to Settings &rarr;
+          </Button>
+        ) : (
+          <div className="text-center text-slate-500 dark:text-slate-400 animate-pulse pb-4 text-sm font-medium">
+            Waiting for host to start...
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // === CONNECTING SPINNER ===
+  if (roomState.connectionStatus === 'CONNECTING' || isBusy) {
+      return (
+          <div className="flex flex-col items-center justify-center h-full space-y-6">
+              <div className="relative">
+                  <div className="w-16 h-16 border-4 border-blue-200 dark:border-slate-700 rounded-full"></div>
+                  <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
+              </div>
+              <p className="text-slate-500 dark:text-slate-400 font-bold animate-pulse">Connecting...</p>
+          </div>
+      );
+  }
+
+  // === MAIN ENTRY (Create / Join / Offline) ===
+  const handleCreate = async () => {
+      if (!name.trim()) return;
+      setIsBusy(true);
+      const player: Player = {
+          id: gameService.getPlayerId(),
+          name: name.trim(),
+          avatar,
+          isHost: true
+      };
+      try {
+        await gameService.createGame(player);
+      } catch (e) {
+          alert('Failed to create room. Please try again.');
+          setIsBusy(false);
+      }
+  };
+
+  const handleJoin = async () => {
+      if (!name.trim() || !inputCode.trim()) return;
+      setIsBusy(true);
+      const player: Player = {
+          id: gameService.getPlayerId(),
+          name: name.trim(),
+          avatar,
+          isHost: false
+      };
+      try {
+        await gameService.joinGame(inputCode.trim(), player);
+      } catch (e) {
+          alert('Could not find room with that code.');
+          setIsBusy(false);
+      }
+  };
+
+  const handleOfflineStart = () => {
+      gameService.startOfflineMode();
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center h-full p-6 w-full">
+       <div className="w-full space-y-6">
+         <div className="text-center space-y-2 mb-8">
+            <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 dark:from-blue-400 dark:via-purple-400 dark:to-pink-400 tracking-tighter filter drop-shadow-sm">
+                IMPOSTER<br/>HUNT
+            </h1>
+            <p className="text-slate-500 dark:text-slate-400 font-medium">Deception • Strategy • Party</p>
+         </div>
+
+         <div className="space-y-4">
+            
+            {/* Avatar & Name Input */}
+            <button 
+              onClick={() => setShowAvatarSelector(!showAvatarSelector)}
+              className="w-full bg-white/50 dark:bg-slate-800/40 p-4 rounded-2xl flex items-center justify-between hover:bg-white/70 dark:hover:bg-slate-700/50 transition-colors border border-white/40 dark:border-white/10 group"
+            >
+              <div className="flex items-center gap-4">
+                <span className="text-4xl filter drop-shadow-md group-hover:scale-110 transition-transform">{avatar}</span>
+                <span className="text-slate-600 dark:text-slate-300 font-bold">Tap to choose avatar</span>
+              </div>
+            </button>
+
+            {showAvatarSelector && (
+              <AvatarSelector 
+                selectedAvatar={avatar} 
+                onSelect={(a) => { setAvatar(a); setShowAvatarSelector(false); }} 
+              />
+            )}
+
+            <input
+              type="text"
+              placeholder="Enter your name..."
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              maxLength={12}
+              className={inputClass}
+            />
+            
+            <div className="h-px bg-slate-300 dark:bg-slate-700/50 my-6 w-1/2 mx-auto"></div>
+
+            {mode === 'MAIN' ? (
+                <div className="space-y-3 pt-2">
+                    <Button fullWidth onClick={handleCreate} disabled={!name} variant="primary" className="shadow-blue-500/20">
+                        Create Online Room
+                    </Button>
+                    <div className="grid grid-cols-2 gap-3">
+                         <Button fullWidth onClick={() => setMode('JOIN_INPUT')} disabled={!name} variant="secondary">
+                            Join Room
+                        </Button>
+                         <Button fullWidth onClick={handleOfflineStart} variant="secondary">
+                            Offline Mode
+                        </Button>
+                    </div>
+                </div>
+            ) : (
+                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 pt-2">
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-2">Room Code</label>
+                        <input
+                            type="text"
+                            placeholder="ABCD"
+                            value={inputCode}
+                            onChange={(e) => setInputCode(e.target.value.toUpperCase())}
+                            maxLength={4}
+                            className="w-full bg-white/70 dark:bg-black/40 p-4 rounded-2xl text-center font-mono placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500 font-black text-3xl tracking-[0.5em] uppercase border border-white/40 dark:border-white/10 text-slate-900 dark:text-white"
+                        />
+                    </div>
+                    <div className="flex gap-3">
+                        <Button className="flex-1" onClick={() => setMode('MAIN')} variant="secondary">
+                            Back
+                        </Button>
+                        <Button className="flex-[2]" onClick={handleJoin} disabled={!name || inputCode.length < 4} variant="primary">
+                            Enter
+                        </Button>
+                    </div>
+                </div>
+            )}
+         </div>
+       </div>
+    </div>
+  );
+};
