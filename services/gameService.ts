@@ -1,6 +1,7 @@
 import { io, Socket } from 'socket.io-client';
 import { RoomState, GamePhase, Player, GameConfig, GameAction } from '../types';
 import { DEFAULT_ROUND_DURATION, DEFAULT_IMPOSTER_COUNT, DEFAULT_ASSOCIATION_WORD_ENABLED, SERVER_URL } from '../constants';
+import { getGameContent } from '../data/gameContent';
 
 const STORAGE_KEY = 'imposter-hunt-game-state';
 const PLAYER_ID_KEY = 'imposter_player_id';
@@ -399,8 +400,7 @@ class GameService {
             ? config.selectedCategories[Math.floor(Math.random() * config.selectedCategories.length)]
             : 'Everything';
 
-        // Import and use the game content generator
-        const { getGameContent } = require('../data/gameContent');
+        // Use the game content generator
         const { word, associationWord } = getGameContent(selectedCategory);
 
         // Assign roles randomly
