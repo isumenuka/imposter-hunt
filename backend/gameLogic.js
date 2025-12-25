@@ -249,7 +249,7 @@ class GameLogic {
 
             if (currentPlayer?.role === 'innocent') {
                 wordToShow = roomState.config.word;
-            } else if (currentPlayer?.role === 'imposter') {
+            } else if (currentPlayer?.role === 'imposter' && roomState.config.associationWordEnabled) {
                 associationWordToShow = roomState.config.associationWord;
             }
 

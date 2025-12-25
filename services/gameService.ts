@@ -399,20 +399,9 @@ class GameService {
             ? config.selectedCategories[Math.floor(Math.random() * config.selectedCategories.length)]
             : 'Everything';
 
-        // Use fallback words for offline mode
-        const fallbackWords = [
-            'Coffee', 'Pizza', 'Ocean', 'Guitar', 'Mountain', 'Rainbow',
-            'Castle', 'Dragon', 'Sunset', 'Thunder', 'Butterfly', 'Diamond'
-        ];
-        const word = fallbackWords[Math.floor(Math.random() * fallbackWords.length)];
-
-        // Generate association word (vague hint for imposters)
-        const associationWords: { [key: string]: string } = {
-            'Coffee': 'Drink', 'Pizza': 'Food', 'Ocean': 'Water', 'Guitar': 'Music',
-            'Mountain': 'Nature', 'Rainbow': 'Colors', 'Castle': 'Building', 'Dragon': 'Fantasy',
-            'Sunset': 'Sky', 'Thunder': 'Weather', 'Butterfly': 'Insect', 'Diamond': 'Gem'
-        };
-        const associationWord = associationWords[word] || 'Thing';
+        // Import and use the game content generator
+        const { getGameContent } = require('../data/gameContent');
+        const { word, associationWord } = getGameContent(selectedCategory);
 
         // Assign roles randomly
         const shuffled = [...players].sort(() => Math.random() - 0.5);
