@@ -47,7 +47,12 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
             <div key={p.id} className="flex items-center bg-white/40 dark:bg-black/20 p-3 rounded-xl animate-in slide-in-from-left-4 backdrop-blur-sm border border-white/20 dark:border-white/5" style={{ animationDelay: `${i * 50}ms` }}>
               <span className="text-2xl mr-3 filter drop-shadow-md">{p.avatar}</span>
               <span className="font-bold text-slate-800 dark:text-white flex-1">{p.name}</span>
-              <button className="text-xs text-red-500 opacity-50 hover:opacity-100 px-2">✕</button>
+              <button
+                className="text-xs text-red-500 opacity-50 hover:opacity-100 px-2 transition-opacity"
+                onClick={() => gameService.removeOfflinePlayer(p.id)}
+              >
+                ✕
+              </button>
             </div>
           ))}
         </div>

@@ -327,6 +327,14 @@ class GameService {
         this.setState({ players: [...this.state.players, newPlayer] });
     }
 
+    public removeOfflinePlayer(playerId: string) {
+        if (this.state.gameMode === 'OFFLINE') {
+            this.setState({
+                players: this.state.players.filter(p => p.id !== playerId)
+            });
+        }
+    }
+
     // =========================================
     // GAME ACTIONS (emit to server)
     // =========================================
@@ -348,10 +356,24 @@ class GameService {
     }
 
     public goToSettings() {
+        // Offline mode: handle locally
+        if (this.state.gameMode === 'OFFLINE') {
+            this.setState({ phase: GamePhase.SETTINGS });
+            return;
+        }
+        // Online mode: emit to server
         this.emitAction('go_to_settings');
     }
 
     public updateSettings(settings: Partial<GameConfig>) {
+        // Offline mode: update local config
+        if (this.state.gameMode === 'OFFLINE') {
+            this.setState({
+                config: { ...this.state.config, ...settings }
+            });
+            return;
+        }
+        // Online mode: emit to server
         this.emitAction('update_settings', { settings });
     }
 
@@ -360,22 +382,205 @@ class GameService {
     }
 
     public startGame(config: GameConfig) {
+        // Offline mode: start offline game
+        if (this.state.gameMode === 'OFFLINE') {
+            this.startOfflineGame(config);
+            return;
+        }
+        // Online mode: emit to server
         this.emitAction('start_game', { config });
     }
 
+    private startOfflineGame(config: GameConfig) {
+        const players = [...this.state.players];
+
+        // Randomly select a category from selectedCategories
+        const selectedCategory = config.selectedCategories.length > 0
+            ? config.selectedCategories[Math.floor(Math.random() * config.selectedCategories.length)]
+            : 'Everything';
+
+        // Use fallback words for offline mode
+        const fallbackWords = [
+            'Coffee', 'Pizza', 'Ocean', 'Guitar', 'Mountain', 'Rainbow',
+            'Castle', 'Dragon', 'Sunset', 'Thunder', 'Butterfly', 'Diamond'
+        ];
+        const word = fallbackWords[Math.floor(Math.random() * fallbackWords.length)];
+
+        // Generate association word (vague hint for imposters)
+        const associationWords: { [key: string]: string } = {
+            'Coffee': 'Drink', 'Pizza': 'Food', 'Ocean': 'Water', 'Guitar': 'Music',
+            'Mountain': 'Nature', 'Rainbow': 'Colors', 'Castle': 'Building', 'Dragon': 'Fantasy',
+            'Sunset': 'Sky', 'Thunder': 'Weather', 'Butterfly': 'Insect', 'Diamond': 'Gem'
+        };
+        const associationWord = associationWords[word] || 'Thing';
+
+        // Assign roles randomly
+        const shuffled = [...players].sort(() => Math.random() - 0.5);
+        const imposterCount = Math.min(config.imposterCount, Math.floor(players.length / 2));
+
+        const playersWithRoles = shuffled.map((p, i) => ({
+            ...p,
+            role: (i < imposterCount ? 'imposter' : 'innocent') as 'innocent' | 'imposter',
+            isReady: false,
+            vote: undefined
+        }));
+
+        // Pick random first speaker
+        const firstSpeakerId = playersWithRoles[Math.floor(Math.random() * playersWithRoles.length)].id;
+
+        // Update state to REVEAL phase
+        this.setState({
+            players: playersWithRoles,
+            phase: GamePhase.REVEAL,
+            config: {
+                ...config,
+                category: selectedCategory,
+                word,
+                associationWord: config.associationWordEnabled ? associationWord : undefined
+            },
+            firstSpeakerId,
+            activePlayerId: playersWithRoles[0].id,
+            isTurnHidden: true,
+            startTime: Date.now()
+        });
+    }
+
     public markReady(playerId: string) {
+        // Offline mode: handle turn-based reveal
+        if (this.state.gameMode === 'OFFLINE') {
+            this.nextOfflineRevealTurn();
+            return;
+        }
+        // Online mode: emit to server
         this.emitAction('player_ready', { playerId });
     }
 
+    private nextOfflineRevealTurn() {
+        const currentIndex = this.state.players.findIndex(p => p.id === this.state.activePlayerId);
+        const nextIndex = currentIndex + 1;
+
+        if (nextIndex >= this.state.players.length) {
+            // All players have seen their role, move to discussion
+            this.setState({
+                phase: GamePhase.DISCUSSION,
+                activePlayerId: undefined,
+                isTurnHidden: false
+            });
+        } else {
+            // Move to next player
+            this.setState({
+                activePlayerId: this.state.players[nextIndex].id,
+                isTurnHidden: true
+            });
+        }
+    }
+
     public startVoting() {
+        // Offline mode: start turn-based voting
+        if (this.state.gameMode === 'OFFLINE') {
+            this.setState({
+                phase: GamePhase.VOTING,
+                activePlayerId: this.state.players[0].id,
+                isTurnHidden: true
+            });
+            return;
+        }
+        // Online mode: emit to server
         this.emitAction('start_voting');
     }
 
     public castVote(voterId: string, suspectId: string) {
+        // Offline mode: handle turn-based voting
+        if (this.state.gameMode === 'OFFLINE') {
+            this.castOfflineVote(suspectId);
+            return;
+        }
+        // Online mode: emit to server
         this.emitAction('cast_vote', { suspectId });
     }
 
+    private castOfflineVote(suspectId: string) {
+        const currentPlayerId = this.state.activePlayerId;
+        if (!currentPlayerId) return;
+
+        // Update current player's vote
+        const updatedPlayers = this.state.players.map(p =>
+            p.id === currentPlayerId ? { ...p, vote: suspectId } : p
+        );
+
+        const currentIndex = updatedPlayers.findIndex(p => p.id === currentPlayerId);
+        const nextIndex = currentIndex + 1;
+
+        if (nextIndex >= updatedPlayers.length) {
+            // All votes cast, calculate results and move to RESULTS phase
+            this.calculateOfflineResults(updatedPlayers);
+        } else {
+            // Move to next voter
+            this.setState({
+                players: updatedPlayers,
+                activePlayerId: updatedPlayers[nextIndex].id,
+                isTurnHidden: true
+            });
+        }
+    }
+
+    private calculateOfflineResults(players: Player[]) {
+        // Count votes
+        const voteCounts: { [playerId: string]: number } = {};
+        players.forEach(p => {
+            if (p.vote) {
+                voteCounts[p.vote] = (voteCounts[p.vote] || 0) + 1;
+            }
+        });
+
+        // Find player with most votes
+        let maxVotes = 0;
+        let eliminatedPlayerId: string | undefined;
+        Object.entries(voteCounts).forEach(([playerId, count]) => {
+            if (count > maxVotes) {
+                maxVotes = count;
+                eliminatedPlayerId = playerId;
+            }
+        });
+
+        // Determine winners
+        const eliminatedPlayer = eliminatedPlayerId ? players.find(p => p.id === eliminatedPlayerId) : undefined;
+        const winners = eliminatedPlayer?.role === 'imposter' ? 'innocent' : 'imposter';
+
+        this.setState({
+            players,
+            phase: GamePhase.RESULTS,
+            winners,
+            activePlayerId: undefined,
+            isTurnHidden: false
+        });
+    }
+
     public resetGame() {
+        // Offline mode: reset to lobby with same players
+        if (this.state.gameMode === 'OFFLINE') {
+            this.setState({
+                phase: GamePhase.LOBBY,
+                activePlayerId: undefined,
+                isTurnHidden: false,
+                winners: undefined,
+                startTime: undefined,
+                firstSpeakerId: undefined,
+                config: {
+                    ...this.state.config,
+                    word: undefined,
+                    associationWord: undefined
+                },
+                players: this.state.players.map(p => ({
+                    ...p,
+                    role: undefined,
+                    vote: undefined,
+                    isReady: false
+                }))
+            });
+            return;
+        }
+        // Online mode: emit to server
         this.emitAction('reset_game');
     }
 
