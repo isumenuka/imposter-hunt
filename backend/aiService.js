@@ -8,23 +8,59 @@ const FALLBACK_WORDS = {
     { word: 'Dolphin', association: 'Ocean' },
     { word: 'Eagle', association: 'Sky' }
   ],
-  Food: [
+  Foods: [
     { word: 'Pizza', association: 'Italian' },
     { word: 'Sushi', association: 'Japanese' },
     { word: 'Burger', association: 'American' },
     { word: 'Pasta', association: 'Noodles' }
   ],
-  Sports: [
-    { word: 'Basketball', association: 'Court' },
-    { word: 'Soccer', association: 'Field' },
-    { word: 'Tennis', association: 'Racket' },
-    { word: 'Swimming', association: 'Water' }
+  Brands: [
+    { word: 'Apple', association: 'Tech' },
+    { word: 'Nike', association: 'Sports' },
+    { word: 'Google', association: 'Search' },
+    { word: 'Tesla', association: 'Electric' }
   ],
-  Technology: [
-    { word: 'Smartphone', association: 'Screen' },
-    { word: 'Laptop', association: 'Computer' },
-    { word: 'Camera', association: 'Photos' },
-    { word: 'Headphones', association: 'Audio' }
+  Objects: [
+    { word: 'Phone', association: 'Call' },
+    { word: 'Chair', association: 'Sit' },
+    { word: 'Book', association: 'Read' },
+    { word: 'Watch', association: 'Time' }
+  ],
+  Anime: [
+    { word: 'Naruto', association: 'Ninja' },
+    { word: 'Pokemon', association: 'Pikachu' },
+    { word: 'Dragon Ball', association: 'Power' },
+    { word: 'One Piece', association: 'Pirate' }
+  ],
+  'Video Games': [
+    { word: 'Minecraft', association: 'Block' },
+    { word: 'Fortnite', association: 'Battle' },
+    { word: 'Mario', association: 'Jump' },
+    { word: 'Pokemon', association: 'Catch' }
+  ],
+  'TV Shows': [
+    { word: 'Friends', association: 'Cafe' },
+    { word: 'Breaking Bad', association: 'Chemistry' },
+    { word: 'Stranger Things', association: 'Eleven' },
+    { word: 'The Office', association: 'Boss' }
+  ],
+  Celebrities: [
+    { word: 'Taylor Swift', association: 'Song' },
+    { word: 'Elon Musk', association: 'Mars' },
+    { word: 'Messi', association: 'Goal' },
+    { word: 'Beyonce', association: 'Singer' }
+  ],
+  Locations: [
+    { word: 'Paris', association: 'France' },
+    { word: 'Tokyo', association: 'Japan' },
+    { word: 'New York', association: 'City' },
+    { word: 'Egypt', association: 'Pyramids' }
+  ],
+  Movies: [
+    { word: 'Titanic', association: 'Ship' },
+    { word: 'Avatar', association: 'Blue' },
+    { word: 'Star Wars', association: 'Space' },
+    { word: 'Harry Potter', association: 'Magic' }
   ],
   Everything: [
     { word: 'Rainbow', association: 'Colors' },
@@ -39,7 +75,7 @@ const FALLBACK_WORDS = {
 class AIService {
   constructor() {
     this.openai = null;
-    
+
     // Initialize OpenAI only if API key is provided
     if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'your_openai_api_key_here') {
       this.openai = new OpenAI({
@@ -78,7 +114,7 @@ class AIService {
 
         const content = response.choices[0].message.content.trim();
         const parsed = JSON.parse(content);
-        
+
         if (parsed.word && parsed.associationWord) {
           console.log(`✅ AI generated: ${parsed.word} (${parsed.associationWord})`);
           return parsed;
@@ -102,9 +138,9 @@ class AIService {
     const categoryWords = FALLBACK_WORDS[category] || FALLBACK_WORDS.Everything;
     const randomIndex = Math.floor(Math.random() * categoryWords.length);
     const selected = categoryWords[randomIndex];
-    
+
     console.log(`📋 Using fallback: ${selected.word} (${selected.association})`);
-    
+
     return {
       word: selected.word,
       associationWord: selected.association
