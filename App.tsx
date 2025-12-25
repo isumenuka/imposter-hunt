@@ -8,11 +8,14 @@ import { Discussion } from './components/Discussion';
 import { Voting } from './components/Voting';
 import { Results } from './components/Results';
 import { Button } from './components/Button';
+import { Credits } from './components/Credits';
+import { Gamepad2 } from 'lucide-react';
 
 const App: React.FC = () => {
   const [roomState, setRoomState] = useState<RoomState | null>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [showCredits, setShowCredits] = useState(false);
 
   useEffect(() => {
     const unsubscribe = gameService.subscribe((state) => {
@@ -186,9 +189,18 @@ const App: React.FC = () => {
           </div>
 
           {/* Footer Credit */}
-          <div className="mt-6 text-xs font-medium text-slate-400 text-center opacity-60">
-            Imposter Hunt • Multiplayer Party Game
-          </div>
+          <button
+            onClick={() => setShowCredits(true)}
+            className="mt-6 text-xs font-medium text-slate-400 hover:text-purple-400 transition-colors duration-300 text-center opacity-60 hover:opacity-100 group relative"
+          >
+            <span className="relative z-10 flex items-center gap-1.5 justify-center">
+              <Gamepad2 size={16} className="text-purple-400 group-hover:scale-110 transition-transform duration-300" />
+              <span>Imposter Hunt</span>
+              <span className="text-[10px] opacity-50">•</span>
+              <span className="text-[10px] opacity-50 group-hover:opacity-100 transition-opacity">Click for credits</span>
+            </span>
+            <div className="absolute inset-0 bg-purple-500/20 rounded-lg blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          </button>
 
           {/* PWA Install Prompt */}
           {showInstallPrompt && deferredPrompt && (
@@ -214,6 +226,9 @@ const App: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Credits Modal */}
+        {showCredits && <Credits onClose={() => setShowCredits(false)} />}
       </div>
     </div>
   );

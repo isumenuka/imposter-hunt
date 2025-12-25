@@ -2,6 +2,7 @@ import { io, Socket } from 'socket.io-client';
 import { RoomState, GamePhase, Player, GameConfig, GameAction } from '../types';
 import { DEFAULT_ROUND_DURATION, DEFAULT_IMPOSTER_COUNT, DEFAULT_ASSOCIATION_WORD_ENABLED, SERVER_URL } from '../constants';
 import { getGameContent } from '../data/gameContent';
+import { fisherYatesShuffle, selectRandom } from '../utils/randomization';
 
 const STORAGE_KEY = 'imposter-hunt-game-state';
 const PLAYER_ID_KEY = 'imposter_player_id';
@@ -396,26 +397,32 @@ class GameService {
         const players = [...this.state.players];
 
         // Randomly select a category from selectedCategories
+        // Uses native Math.random() which is sufficient for category selection
         const selectedCategory = config.selectedCategories.length > 0
-            ? config.selectedCategories[Math.floor(Math.random() * config.selectedCategories.length)]
+            ? selectRandom(config.selectedCategories) || 'Everything'
             : 'Everything';
 
-        // Use the game content generator
+        // Use the game content generator to get a random word
         const { word, associationWord } = getGameContent(selectedCategory);
 
-        // Assign roles randomly
-        const shuffled = [...players].sort(() => Math.random() - 0.5);
+        // === FAIR IMPOSTER SELECTION ===
+        // Uses Fisher-Yates shuffle algorithm to ensure:
+        // - Every player has EQUAL chance to be selected as imposter
+        // - No bias towards any player position
+        // - Mathematically proven uniform distribution
+        const shuffledPlayers = fisherYatesShuffle(players);
         const imposterCount = Math.min(config.imposterCount, Math.floor(players.length / 2));
 
-        const playersWithRoles = shuffled.map((p, i) => ({
+        // Assign roles: first N players from shuffled array become imposters
+        const playersWithRoles = shuffledPlayers.map((p, i) => ({
             ...p,
             role: (i < imposterCount ? 'imposter' : 'innocent') as 'innocent' | 'imposter',
             isReady: false,
             vote: undefined
         }));
 
-        // Pick random first speaker
-        const firstSpeakerId = playersWithRoles[Math.floor(Math.random() * playersWithRoles.length)].id;
+        // Pick random first speaker using fair selection
+        const firstSpeakerId = selectRandom(playersWithRoles)?.id || playersWithRoles[0].id;
 
         // Update state to REVEAL phase
         this.setState({
