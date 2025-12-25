@@ -82,15 +82,15 @@ const App: React.FC = () => {
     // Interstitial Screen (Pass Phone)
     if (isOffline && roomState.isTurnHidden && roomState.phase !== GamePhase.DISCUSSION && roomState.phase !== GamePhase.RESULTS && currentPlayer) {
       return (
-        <div className="flex flex-col items-center justify-center h-full p-6 space-y-8 animate-in fade-in">
-          <div className="text-center space-y-4">
-            <p className="text-slate-400 uppercase tracking-widest text-sm font-bold">Pass Device To</p>
-            <div className="text-8xl animate-bounce filter drop-shadow-xl">{currentPlayer.avatar}</div>
-            <h1 className="text-4xl font-black text-white">{currentPlayer.name}</h1>
+        <div className="flex flex-col items-center justify-center h-full p-4 sm:p-6 space-y-4 sm:space-y-6 animate-in fade-in">
+          <div className="text-center space-y-2 sm:space-y-3">
+            <p className="text-slate-400 uppercase tracking-widest text-xs sm:text-sm font-bold">Pass Device To</p>
+            <div className="text-5xl sm:text-6xl md:text-7xl animate-bounce filter drop-shadow-xl">{currentPlayer.avatar}</div>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white">{currentPlayer.name}</h1>
           </div>
 
-          <div className="p-6 bg-slate-800/50 rounded-3xl border border-white/10 text-center max-w-xs backdrop-blur-md shadow-xl">
-            <p className="text-slate-300 mb-6 font-medium">Ensure no one else is looking at the screen!</p>
+          <div className="p-4 sm:p-6 bg-slate-800/50 rounded-2xl sm:rounded-3xl border border-white/10 text-center max-w-xs backdrop-blur-md shadow-xl">
+            <p className="text-slate-300 mb-4 sm:mb-6 font-medium text-sm sm:text-base">Ensure no one else is looking at the screen!</p>
             <Button fullWidth onClick={() => gameService.revealTurn()}>
               I am {currentPlayer.name}
             </Button>
