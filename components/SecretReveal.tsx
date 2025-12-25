@@ -93,22 +93,19 @@ export const SecretReveal: React.FC<Props> = ({ player, secretWord, associationW
             </div>
           </div>
 
-          <div className={`
-            w-full p-6 rounded-2xl z-10 text-center backdrop-blur-md border border-white/20
-            ${isInnocent ? 'bg-slate-100/50 dark:bg-slate-700/30' : 'bg-red-100/50 dark:bg-red-900/20'}
-          `}>
-            <p className="text-xs uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2 font-bold">
-              {isInnocent ? 'Secret Word' : showAssociation ? 'Association Word' : 'Mission'}
-            </p>
-            <p className="text-4xl font-black text-slate-900 dark:text-white leading-tight">
-              {isInnocent ? secretWord : (showAssociation ? associationWord : 'Blend In')}
-            </p>
-            {!isInnocent && !showAssociation && (
-              <p className="text-xs font-medium text-red-500/70 dark:text-red-300/50 mt-2">
-                (No association word available)
+          {(isInnocent || showAssociation) && (
+            <div className={`
+              w-full p-6 rounded-2xl z-10 text-center backdrop-blur-md border border-white/20
+              ${isInnocent ? 'bg-slate-100/50 dark:bg-slate-700/30' : 'bg-red-100/50 dark:bg-red-900/20'}
+            `}>
+              <p className="text-xs uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2 font-bold">
+                {isInnocent ? 'Secret Word' : 'Association Word'}
               </p>
-            )}
-          </div>
+              <p className="text-4xl font-black text-slate-900 dark:text-white leading-tight">
+                {isInnocent ? secretWord : associationWord}
+              </p>
+            </div>
+          )}
         </div>
 
         <Button fullWidth className="mt-8 shadow-xl" onClick={handleNext}>

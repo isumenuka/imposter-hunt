@@ -124,7 +124,7 @@ const App: React.FC = () => {
           <SecretReveal
             player={currentPlayer}
             secretWord={roomState.config.word}
-            imposterClue={roomState.config.imposterClue}
+            associationWord={roomState.config.associationWord}
           />
         );
 
