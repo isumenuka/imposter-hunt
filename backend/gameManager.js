@@ -65,7 +65,7 @@ class GameManager {
                 selectedCategories: [],
                 roundDuration: 180,
                 imposterCount: 1,
-                associationWordEnabled: true
+                imposterClueEnabled: true
             }
         };
 

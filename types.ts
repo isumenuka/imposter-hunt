@@ -23,7 +23,7 @@ export interface GameConfig {
   selectedCategories: string[]; // The pool of categories the host ticked
   roundDuration: number; // in seconds
   imposterCount: number;
-  associationWordEnabled: boolean; // Toggle for showing association word to imposters
+  imposterClueEnabled: boolean; // Toggle for showing association word to imposters
   word?: string; // The secret word
   associationWord?: string; // Ambiguous association word for the imposter
 }
