@@ -19,7 +19,7 @@ interface CreditsProps {
 
 export const Credits: React.FC<CreditsProps> = ({ onClose }) => {
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300">
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-black/60 backdrop-blur-sm"
@@ -27,19 +27,19 @@ export const Credits: React.FC<CreditsProps> = ({ onClose }) => {
             />
 
             {/* Credits Modal */}
-            <div className="relative w-full max-w-md glass-panel rounded-3xl p-8 shadow-2xl overflow-hidden">
+            <div className="relative w-full max-w-md glass-panel rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
                 {/* Animated Background Gradient */}
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
                     <div className="absolute -top-24 -right-24 w-64 h-64 bg-purple-500/30 rounded-full mix-blend-screen filter blur-3xl animate-pulse" />
                     <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-blue-500/30 rounded-full mix-blend-screen filter blur-3xl animate-pulse animation-delay-2000" />
                 </div>
 
-                {/* Content */}
-                <div className="relative z-10">
-                    {/* Close Button */}
+                {/* Content - Scrollable */}
+                <div className="relative z-10 overflow-y-auto flex-1 p-6 sm:p-8">
+                    {/* Close Button - Sticky */}
                     <button
                         onClick={onClose}
-                        className="absolute top-0 right-0 text-slate-400 hover:text-white transition-colors w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10"
+                        className="sticky top-0 float-right text-slate-400 hover:text-white transition-colors w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 z-20 bg-slate-900/80 backdrop-blur-sm"
                         aria-label="Close"
                     >
                         <X size={20} />
@@ -157,7 +157,7 @@ export const Credits: React.FC<CreditsProps> = ({ onClose }) => {
                     </div>
 
                     {/* Close Button at Bottom */}
-                    <div className="mt-8">
+                    <div className="mt-6 sm:mt-8 pb-2">
                         <Button fullWidth onClick={onClose}>
                             Close
                         </Button>
