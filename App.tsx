@@ -171,14 +171,14 @@ const App: React.FC = () => {
         </div>
 
         {/* === MAIN CONTENT CONTAINER === */}
-        <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-4 md:p-8">
+        <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-2 sm:p-4 md:p-8">
 
           {/* Glass Card */}
-          <div className="w-full max-w-lg glass-panel rounded-[3rem] shadow-2xl overflow-hidden h-[85vh] md:h-[800px] relative flex flex-col transition-all duration-300">
+          <div className="w-full max-w-full sm:max-w-md md:max-w-lg lg:max-w-2xl glass-panel rounded-none sm:rounded-[2rem] md:rounded-[3rem] shadow-2xl overflow-hidden min-h-screen sm:min-h-[600px] md:h-[800px] relative flex flex-col transition-all duration-300">
             {/* Header Phase Indicator */}
             {roomState.phase !== GamePhase.LOBBY && (
               <div className="absolute top-4 left-0 w-full text-center z-20 pointer-events-none">
-                <span className="px-4 py-1.5 bg-white/10 rounded-full text-[10px] font-bold tracking-widest uppercase text-slate-300 backdrop-blur-sm border border-white/10 shadow-lg">
+                <span className="px-3 sm:px-4 py-1 sm:py-1.5 bg-white/10 rounded-full text-xs sm:text-[10px] font-bold tracking-widest uppercase text-slate-300 backdrop-blur-sm border border-white/10 shadow-lg inline-block">
                   {roomState.phase.replace('_', ' ')} {isOffline ? '• OFFLINE' : ''}
                 </span>
               </div>
