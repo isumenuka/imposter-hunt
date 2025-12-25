@@ -98,7 +98,7 @@ class GameLogic {
                 ...config,
                 category: selectedCategory,
                 word,
-                associationWord: config.associationWordEnabled ? associationWord : undefined
+                associationWord: config.imposterClueEnabled ? associationWord : undefined
             },
             phase: 'REVEAL'
         };
@@ -249,7 +249,7 @@ class GameLogic {
 
             if (currentPlayer?.role === 'innocent') {
                 wordToShow = roomState.config.word;
-            } else if (currentPlayer?.role === 'imposter' && roomState.config.associationWordEnabled) {
+            } else if (currentPlayer?.role === 'imposter' && roomState.config.imposterClueEnabled) {
                 associationWordToShow = roomState.config.associationWord;
             }
 

@@ -17,7 +17,7 @@ const initialState: RoomState = {
         selectedCategories: [],
         roundDuration: DEFAULT_ROUND_DURATION,
         imposterCount: DEFAULT_IMPOSTER_COUNT,
-        associationWordEnabled: DEFAULT_ASSOCIATION_WORD_ENABLED,
+        imposterClueEnabled: DEFAULT_ASSOCIATION_WORD_ENABLED,
     },
     connectionStatus: 'DISCONNECTED',
     activePlayerId: undefined,
@@ -425,7 +425,7 @@ class GameService {
                 ...config,
                 category: selectedCategory,
                 word,
-                associationWord: config.associationWordEnabled ? associationWord : undefined
+                associationWord: config.imposterClueEnabled ? associationWord : undefined
             },
             firstSpeakerId,
             activePlayerId: playersWithRoles[0].id,
