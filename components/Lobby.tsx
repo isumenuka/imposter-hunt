@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { Player, RoomState } from '../types';
 import { gameService } from '../services/gameService';
 import { Button } from './Button';
-import { Users, User, X, UserPlus, Shield, Info } from 'lucide-react';
-import { GameRules } from './GameRules';
+import { Users, User, X, UserPlus, Shield } from 'lucide-react';
 
 interface Props {
   roomState: RoomState;
@@ -15,7 +14,6 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
   const [mode, setMode] = useState<'MAIN' | 'JOIN_INPUT'>('MAIN');
   const [inputCode, setInputCode] = useState('');
   const [isBusy, setIsBusy] = useState(false);
-  const [showRules, setShowRules] = useState(false);
 
   const inputClass = "w-full bg-white/60 dark:bg-black/30 p-4 rounded-2xl text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-lg border border-white/30 dark:border-white/10 transition-all";
 
@@ -32,24 +30,24 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
     return (
       <div className="flex flex-col h-full p-6 space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
+          <h1 className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
             Offline Setup
           </h1>
-          <Button variant="ghost" className="!p-2 text-sm" onClick={() => gameService.resetToInitialState()}>Exit</Button>
+          <Button variant="ghost" className="!p-2 text-xs sm:text-sm" onClick={() => gameService.resetToInitialState()}>Exit</Button>
         </div>
 
         {/* Player List */}
         <div className="flex-1 overflow-y-auto space-y-2 p-2 scroll-smooth">
           {roomState.players.length === 0 && (
-            <div className="text-center text-slate-500 dark:text-slate-400 py-12 flex flex-col items-center">
-              <Users size={48} className="mb-2 opacity-50" />
-              Add at least 3 players to start
+            <div className="text-center text-slate-500 dark:text-slate-400 py-8 sm:py-12 flex flex-col items-center">
+              <Users size={32} className="mb-2 opacity-50 sm:w-12 sm:h-12" />
+              <span className="text-xs sm:text-sm">Add at least 3 players to start</span>
             </div>
           )}
           {roomState.players.map((p, i) => (
-            <div key={p.id} className="flex items-center bg-white/40 dark:bg-black/20 p-3 rounded-xl animate-in slide-in-from-left-4 backdrop-blur-sm border border-white/20 dark:border-white/5" style={{ animationDelay: `${i * 50}ms` }}>
-              <span className="text-2xl mr-3 filter drop-shadow-md">{p.avatar}</span>
-              <span className="font-bold text-slate-800 dark:text-white flex-1">{p.name}</span>
+            <div key={p.id} className="flex items-center bg-white/40 dark:bg-black/20 p-2 sm:p-3 rounded-xl animate-in slide-in-from-left-4 backdrop-blur-sm border border-white/20 dark:border-white/5" style={{ animationDelay: `${i * 50}ms` }}>
+              <span className="text-xl sm:text-2xl mr-2 sm:mr-3 filter drop-shadow-md">{p.avatar}</span>
+              <span className="font-bold text-sm sm:text-base text-slate-800 dark:text-white flex-1">{p.name}</span>
               <button
                 className="text-red-500 opacity-50 hover:opacity-100 px-2 transition-opacity"
                 onClick={() => gameService.removeOfflinePlayer(p.id)}
@@ -73,7 +71,7 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
               className={`flex-1 ${inputClass} !p-3`}
             />
             <Button onClick={handleAddOfflinePlayer} disabled={!name.trim()} className="!py-3 !px-5 shadow-none">
-              <UserPlus size={18} />
+              <UserPlus size={16} className="sm:w-[18px] sm:h-[18px]" />
             </Button>
           </div>
         </div>
@@ -100,14 +98,14 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
         <div className="bg-white/50 dark:bg-slate-800/40 p-6 rounded-3xl border border-white/50 dark:border-white/10 shadow-xl backdrop-blur-md">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-xl font-bold text-slate-800 dark:text-white">Player Lobby</h1>
-            <div className="bg-blue-100 dark:bg-blue-900/30 px-3 py-1 rounded-full text-xs font-bold text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30 flex items-center gap-1.5">
-              <Users size={14} />
+            <div className="bg-blue-100 dark:bg-blue-900/30 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30 flex items-center gap-1">
+              <Users size={12} className="sm:w-[14px] sm:h-[14px]" />
               {roomState.players.length}/12
             </div>
           </div>
           <div className="text-center p-4 bg-white/60 dark:bg-black/30 rounded-2xl border border-white/30 dark:border-white/5 mb-4 relative overflow-hidden group">
-            <p className="text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-widest mb-1 font-bold">Room Code</p>
-            <p className="text-4xl font-mono font-black text-blue-600 dark:text-blue-400 tracking-widest select-all relative z-10">{roomState.roomCode}</p>
+            <p className="text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-widest mb-0.5 sm:mb-1 font-bold">Room Code</p>
+            <p className="text-2xl sm:text-3xl md:text-4xl font-mono font-black text-blue-600 dark:text-blue-400 tracking-widest select-all relative z-10">{roomState.roomCode}</p>
           </div>
 
           <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden mb-2">
@@ -123,11 +121,11 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
 
         <div className="flex-1 overflow-y-auto space-y-3 p-1">
           {roomState.players.map((p) => (
-            <div key={p.id} className="flex items-center bg-white/40 dark:bg-slate-800/40 p-3 rounded-2xl border border-white/40 dark:border-white/5 shadow-sm">
-              <span className="text-3xl mr-4 filter drop-shadow-sm">{p.avatar}</span>
+            <div key={p.id} className="flex items-center bg-white/40 dark:bg-slate-800/40 p-2 sm:p-3 rounded-2xl border border-white/40 dark:border-white/5 shadow-sm">
+              <span className="text-2xl sm:text-3xl mr-3 sm:mr-4 filter drop-shadow-sm">{p.avatar}</span>
               <div className="flex-1">
-                <p className="font-bold text-slate-800 dark:text-white">{p.name} {p.id === currentPlayer.id && '(You)'}</p>
-                {p.isHost && <p className="text-[10px] text-yellow-600 dark:text-yellow-400 font-bold bg-yellow-100 dark:bg-yellow-900/30 inline-flex items-center gap-1 px-2 py-0.5 rounded-full mt-1"><Shield size={10} />HOST</p>}
+                <p className="font-bold text-sm sm:text-base text-slate-800 dark:text-white">{p.name} {p.id === currentPlayer.id && '(You)'}</p>
+                {p.isHost && <p className="text-[9px] sm:text-[10px] text-yellow-600 dark:text-yellow-400 font-bold bg-yellow-100 dark:bg-yellow-900/30 inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 rounded-full mt-1"><Shield size={9} className="sm:w-[10px] sm:h-[10px]" />HOST</p>}
               </div>
             </div>
           ))}
@@ -206,10 +204,10 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
     <div className="flex flex-col items-center justify-center h-full p-6 w-full">
       <div className="w-full space-y-6">
         <div className="text-center space-y-2 mb-8">
-          <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 dark:from-blue-400 dark:via-purple-400 dark:to-pink-400 tracking-tighter filter drop-shadow-sm">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 dark:from-blue-400 dark:via-purple-400 dark:to-pink-400 tracking-tighter filter drop-shadow-sm">
             IMPOSTER<br />HUNT
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 font-medium">Deception • Strategy • Party</p>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">Deception • Strategy • Party</p>
         </div>
 
         <div className="space-y-4">
@@ -263,19 +261,7 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
             </div>
           )}
         </div>
-
-        {/* How to Play Button */}
-        <button
-          onClick={() => setShowRules(true)}
-          className="mt-4 text-xs font-medium text-slate-400 hover:text-purple-400 transition-colors duration-300 text-center opacity-60 hover:opacity-100 group flex items-center justify-center gap-2"
-        >
-          <Info size={14} className="text-purple-400 group-hover:scale-110 transition-transform duration-300" />
-          <span>How to Play</span>
-        </button>
       </div>
-
-      {/* Game Rules Modal */}
-      {showRules && <GameRules onClose={() => setShowRules(false)} />}
     </div>
   );
 };
