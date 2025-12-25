@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Player } from '../types';
 import { gameService } from '../services/gameService';
 import { Button } from './Button';
+import { Timer, Lock, Eye, AlertCircle, BadgeCheck } from 'lucide-react';
+import { soundManager } from '../utils/sounds';
 
 interface Props {
   player: Player;
@@ -39,6 +41,20 @@ export const SecretReveal: React.FC<Props> = ({ player, secretWord, associationW
     };
   }, [isHolding, revealed]);
 
+  // Play sound when role is revealed
+  useEffect(() => {
+    if (revealed) {
+      // Small delay to let the animation start
+      setTimeout(() => {
+        if (player.role === 'imposter') {
+          soundManager.playImposterReveal();
+        } else {
+          soundManager.playInnocentReveal();
+        }
+      }, 100);
+    }
+  }, [revealed, player.role]);
+
   const handleNext = () => {
     gameService.markReady(player.id);
   };
@@ -47,7 +63,7 @@ export const SecretReveal: React.FC<Props> = ({ player, secretWord, associationW
     return (
       <div className="flex flex-col items-center justify-center h-full p-8 text-center space-y-6">
         <div className="relative">
-          <div className="text-6xl animate-bounce filter drop-shadow-md">⏳</div>
+          <Timer size={64} className="animate-bounce text-blue-500 dark:text-blue-400" />
           <div className="absolute -bottom-2 w-full h-2 bg-black/10 rounded-full blur-sm"></div>
         </div>
         <h2 className="text-2xl font-black text-slate-800 dark:text-white">Waiting for others...</h2>
@@ -75,12 +91,19 @@ export const SecretReveal: React.FC<Props> = ({ player, secretWord, associationW
 
           <div className="flex items-center gap-2 mt-4 z-10 bg-white/50 dark:bg-black/30 px-3 py-1 rounded-full border border-white/20">
             <div className={`w-2 h-2 rounded-full ${isInnocent ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]'} animate-pulse`}></div>
-            <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-500 dark:text-slate-300">Identity Confirmed</span>
+            <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-500 dark:text-slate-300 flex items-center gap-1">
+              <BadgeCheck size={12} className="text-green-500" />
+              Identity Confirmed
+            </span>
           </div>
 
           <div className="text-center z-10 space-y-4">
             <div className="text-9xl mb-6 transform hover:scale-110 transition-transform filter drop-shadow-xl">
-              {isInnocent ? player.avatar : '👺'}
+              {isInnocent ? player.avatar : (
+                <div className="flex items-center justify-center w-full">
+                  <Eye size={96} className="text-red-600 dark:text-red-500" strokeWidth={2} />
+                </div>
+              )}
             </div>
 
             <div className={`
@@ -124,7 +147,7 @@ export const SecretReveal: React.FC<Props> = ({ player, secretWord, associationW
         <div className="flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-bold tracking-widest uppercase">
           <div className={`w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-600 ${!isHolding ? 'animate-pulse' : ''}`}></div>
           Security Check
-          <span className="ml-1">🔒</span>
+          <Lock size={12} className="ml-1 text-slate-400 dark:text-slate-600" />
         </div>
       </div>
 
@@ -199,7 +222,8 @@ export const SecretReveal: React.FC<Props> = ({ player, secretWord, associationW
       </div>
 
       <div className="px-4 py-2 bg-yellow-100/50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-900/30 flex items-center gap-2 text-xs text-yellow-700 dark:text-yellow-400 font-bold">
-        <span>⚠️</span> Keep your screen private from others
+        <AlertCircle size={16} className="flex-shrink-0" />
+        <span>Keep your screen private from others</span>
       </div>
     </div>
   );

@@ -9,9 +9,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "lucide-react": "^0.562.0",
+    "openai": "^4.52.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "openai": "^4.52.0",
     "socket.io-client": "^4.7.2"
   },
   "devDependencies": {

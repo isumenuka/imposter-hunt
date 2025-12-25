@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Player, RoomState } from '../types';
 import { gameService } from '../services/gameService';
 import { Button } from './Button';
+import { Users, User, X, UserPlus, Shield, Info } from 'lucide-react';
+import { GameRules } from './GameRules';
 
 interface Props {
   roomState: RoomState;
@@ -13,6 +15,7 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
   const [mode, setMode] = useState<'MAIN' | 'JOIN_INPUT'>('MAIN');
   const [inputCode, setInputCode] = useState('');
   const [isBusy, setIsBusy] = useState(false);
+  const [showRules, setShowRules] = useState(false);
 
   const inputClass = "w-full bg-white/60 dark:bg-black/30 p-4 rounded-2xl text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-lg border border-white/30 dark:border-white/10 transition-all";
 
@@ -22,7 +25,7 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
 
     const handleAddOfflinePlayer = () => {
       if (!name.trim()) return;
-      gameService.addOfflinePlayer(name.trim(), '👤');
+      gameService.addOfflinePlayer(name.trim(), '👤'); // Avatar still emoji for player identity
       setName('');
     };
 
@@ -39,7 +42,7 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
         <div className="flex-1 overflow-y-auto space-y-2 p-2 scroll-smooth">
           {roomState.players.length === 0 && (
             <div className="text-center text-slate-500 dark:text-slate-400 py-12 flex flex-col items-center">
-              <span className="text-4xl mb-2 opacity-50">👥</span>
+              <Users size={48} className="mb-2 opacity-50" />
               Add at least 3 players to start
             </div>
           )}
@@ -48,10 +51,10 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
               <span className="text-2xl mr-3 filter drop-shadow-md">{p.avatar}</span>
               <span className="font-bold text-slate-800 dark:text-white flex-1">{p.name}</span>
               <button
-                className="text-xs text-red-500 opacity-50 hover:opacity-100 px-2 transition-opacity"
+                className="text-red-500 opacity-50 hover:opacity-100 px-2 transition-opacity"
                 onClick={() => gameService.removeOfflinePlayer(p.id)}
               >
-                ✕
+                <X size={16} />
               </button>
             </div>
           ))}
@@ -70,7 +73,7 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
               className={`flex-1 ${inputClass} !p-3`}
             />
             <Button onClick={handleAddOfflinePlayer} disabled={!name.trim()} className="!py-3 !px-5 shadow-none">
-              +
+              <UserPlus size={18} />
             </Button>
           </div>
         </div>
@@ -97,8 +100,9 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
         <div className="bg-white/50 dark:bg-slate-800/40 p-6 rounded-3xl border border-white/50 dark:border-white/10 shadow-xl backdrop-blur-md">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-xl font-bold text-slate-800 dark:text-white">Player Lobby</h1>
-            <div className="bg-blue-100 dark:bg-blue-900/30 px-3 py-1 rounded-full text-xs font-bold text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30">
-              👥 {roomState.players.length}/12
+            <div className="bg-blue-100 dark:bg-blue-900/30 px-3 py-1 rounded-full text-xs font-bold text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30 flex items-center gap-1.5">
+              <Users size={14} />
+              {roomState.players.length}/12
             </div>
           </div>
           <div className="text-center p-4 bg-white/60 dark:bg-black/30 rounded-2xl border border-white/30 dark:border-white/5 mb-4 relative overflow-hidden group">
@@ -123,7 +127,7 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
               <span className="text-3xl mr-4 filter drop-shadow-sm">{p.avatar}</span>
               <div className="flex-1">
                 <p className="font-bold text-slate-800 dark:text-white">{p.name} {p.id === currentPlayer.id && '(You)'}</p>
-                {p.isHost && <p className="text-[10px] text-yellow-600 dark:text-yellow-400 font-bold bg-yellow-100 dark:bg-yellow-900/30 inline-block px-2 py-0.5 rounded-full mt-1">HOST</p>}
+                {p.isHost && <p className="text-[10px] text-yellow-600 dark:text-yellow-400 font-bold bg-yellow-100 dark:bg-yellow-900/30 inline-flex items-center gap-1 px-2 py-0.5 rounded-full mt-1"><Shield size={10} />HOST</p>}
               </div>
             </div>
           ))}
@@ -259,7 +263,19 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
             </div>
           )}
         </div>
+
+        {/* How to Play Button */}
+        <button
+          onClick={() => setShowRules(true)}
+          className="mt-4 text-xs font-medium text-slate-400 hover:text-purple-400 transition-colors duration-300 text-center opacity-60 hover:opacity-100 group flex items-center justify-center gap-2"
+        >
+          <Info size={14} className="text-purple-400 group-hover:scale-110 transition-transform duration-300" />
+          <span>How to Play</span>
+        </button>
       </div>
+
+      {/* Game Rules Modal */}
+      {showRules && <GameRules onClose={() => setShowRules(false)} />}
     </div>
   );
 };
