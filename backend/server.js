@@ -163,6 +163,7 @@ io.on('connection', (socket) => {
         }
     });
 
+
     // ========== UPDATE PLAYER CATEGORIES ==========
     socket.on('update_player_categories', (data) => {
         try {
@@ -199,6 +200,42 @@ io.on('connection', (socket) => {
             socket.emit('error', { message: error.message });
         }
     });
+
+    // ========== UPDATE AVATAR ==========
+    socket.on('update_avatar', (data) => {
+        try {
+            const roomCode = gameManager.getRoomCodeForSocket(socket.id);
+            if (!roomCode) return;
+
+            const room = gameManager.getRoom(roomCode);
+            if (!room) return;
+
+            const playerId = gameManager.getPlayerIdFromSocket(socket.id, roomCode);
+            const { avatar } = data;
+
+            // Validate avatar is not already taken by another player
+            const avatarTaken = room.roomState.players.some(p => p.id !== playerId && p.avatar === avatar);
+
+            if (avatarTaken) {
+                socket.emit('error', { message: 'This emoji is already taken' });
+                return;
+            }
+
+            // Update player's avatar
+            const updatedPlayers = room.roomState.players.map(p =>
+                p.id === playerId ? { ...p, avatar } : p
+            );
+
+            gameManager.updateRoomState(roomCode, { players: updatedPlayers });
+
+            io.to(roomCode).emit('room_state', room.roomState);
+            console.log(`✨ Player ${playerId} changed avatar to ${avatar} in room ${roomCode}`);
+        } catch (error) {
+            console.error('Error updating avatar:', error);
+            socket.emit('error', { message: error.message });
+        }
+    });
+
 
     // ========== START GAME ==========
     socket.on('start_game', async (data) => {
@@ -431,6 +468,73 @@ io.on('connection', (socket) => {
 
         } catch (error) {
             console.error('Error re-randomizing secret word:', error);
+            socket.emit('error', { message: error.message });
+        }
+    });
+
+    // ========== SEND CHAT MESSAGE ==========
+    socket.on('send_message', (data) => {
+        try {
+            const roomCode = gameManager.getRoomCodeForSocket(socket.id);
+            if (!roomCode) return;
+
+            const room = gameManager.getRoom(roomCode);
+            if (!room) return;
+
+            const playerId = gameManager.getPlayerIdFromSocket(socket.id, roomCode);
+            const player = room.roomState.players.find(p => p.id === playerId);
+
+            if (!player) {
+                socket.emit('error', { message: 'Player not found' });
+                return;
+            }
+
+            const { message } = data;
+
+            // Validate message
+            if (!message || typeof message !== 'string') {
+                socket.emit('error', { message: 'Invalid message' });
+                return;
+            }
+
+            if (message.trim().length === 0) {
+                return; // Silently ignore empty messages
+            }
+
+            if (message.length > 500) {
+                socket.emit('error', { message: 'Message too long (max 500 characters)' });
+                return;
+            }
+
+            // Create chat message
+            const chatMessage = {
+                id: `${Date.now()}-${playerId}`,
+                playerId: player.id,
+                playerName: player.name,
+                avatar: player.avatar,
+                message: message.trim(),
+                timestamp: Date.now()
+            };
+
+            // Add to room state
+            const messages = room.roomState.messages || [];
+            const updatedMessages = [...messages, chatMessage];
+
+            // Keep only last 100 messages to avoid memory issues
+            if (updatedMessages.length > 100) {
+                updatedMessages.shift();
+            }
+
+            gameManager.updateRoomState(roomCode, { messages: updatedMessages });
+
+            // Broadcast message to all players in room
+            io.to(roomCode).emit('chat_message', chatMessage);
+            io.to(roomCode).emit('room_state', room.roomState);
+
+            console.log(`💬 Chat message in room ${roomCode} from ${player.name}: ${message.substring(0, 50)}...`);
+
+        } catch (error) {
+            console.error('Error sending message:', error);
             socket.emit('error', { message: error.message });
         }
     });

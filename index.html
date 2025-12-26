@@ -63,6 +63,13 @@
       * {
         -webkit-tap-highlight-color: rgba(147, 51, 234, 0.15);
         -webkit-touch-callout: none;
+        box-sizing: border-box;
+      }
+      
+      html {
+        -webkit-text-size-adjust: 100%;
+        -moz-text-size-adjust: 100%;
+        text-size-adjust: 100%;
       }
       
       body {
@@ -73,11 +80,36 @@
         -moz-osx-font-smoothing: grayscale;
         touch-action: pan-x pan-y;
         font-size: 14px;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100vh;
+        overflow: hidden;
+        position: fixed;
+      }
+      
+      #root {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
       }
       
       /* Prevent zoom on input focus (mobile) */
-      input, select, textarea {
-        font-size: 14px !important;
+      input, select, textarea, button {
+        font-size: 16px !important; /* 16px prevents zoom on iOS */
+      }
+      
+      /* Better touch targets */
+      button, a, [role="button"] {
+        min-height: 44px;
+        min-width: 44px;
+      }
+      
+      @media (max-width: 640px) {
+        button, a, [role="button"] {
+          min-height: 48px;
+          min-width: 48px;
+        }
       }
       
       /* Custom scrollbar */

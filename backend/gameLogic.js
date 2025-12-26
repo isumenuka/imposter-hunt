@@ -10,7 +10,7 @@ const GAME_CATEGORIES = [
     'Music', 'Countries', 'Professions', 'Everything'
 ];
 
-const AVATARS = ['🦊', '🐼', '🦁', '🐸', '🐙', '🦄', '🐲', '🦉', '🐺', '🦈'];
+const AVATARS = ['🕵️', '👽', '🤖', '🦊', '🦄', '🐼', '🦁', '🐸', '👻', '💀', '🤡', '🎃'];
 
 /**
  * Fisher-Yates shuffle algorithm for fair randomization
@@ -347,7 +347,8 @@ class GameLogic {
             },
             startTime: undefined,
             firstSpeakerId: undefined,
-            winners: undefined
+            winners: undefined,
+            messages: [] // Clear chat history
         };
     }
 }

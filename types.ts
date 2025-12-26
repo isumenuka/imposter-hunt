@@ -18,6 +18,15 @@ export interface Player {
   selectedCategories?: string[]; // Categories this player wants to play
 }
 
+export interface ChatMessage {
+  id: string;
+  playerId: string;
+  playerName: string;
+  avatar: string;
+  message: string;
+  timestamp: number;
+}
+
 export interface GameConfig {
   category: string; // The specific category chosen for the current round
   selectedCategories: string[]; // The pool of categories the host ticked
@@ -40,6 +49,7 @@ export interface RoomState {
   winners?: 'innocent' | 'imposter';
   connectionStatus?: 'CONNECTED' | 'DISCONNECTED' | 'CONNECTING';
   error?: string; // Error message for failed operations
+  messages?: ChatMessage[]; // Chat messages
 
   // Offline Mode Specifics
   activePlayerId?: string; // Who is currently holding the phone
@@ -55,12 +65,14 @@ export type GameActionType =
   | 'JOIN_REQUEST'
   | 'UPDATE_SETTINGS'
   | 'UPDATE_PLAYER_CATEGORIES'
+  | 'UPDATE_AVATAR' // Update player's emoji
   | 'GO_TO_SETTINGS'
   | 'START_GAME'
   | 'PLAYER_READY'
   | 'START_VOTING'
   | 'CAST_VOTE'
   | 'RESET_GAME'
+  | 'SEND_MESSAGE' // Send chat message
   // Offline specific
   | 'ADD_OFFLINE_PLAYER'
   | 'NEXT_OFFLINE_TURN'
