@@ -15,7 +15,7 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
   const [inputCode, setInputCode] = useState('');
   const [isBusy, setIsBusy] = useState(false);
 
-  const inputClass = "w-full bg-white/60 dark:bg-black/30 p-4 rounded-2xl text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-lg border border-white/30 dark:border-white/10 transition-all";
+  const inputClass = "w-full bg-white/50 dark:bg-black/40 p-2.5 sm:p-3 rounded-xl text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium text-sm border border-white/20 dark:border-white/5 transition-all";
 
   // === OFFLINE MODE LOBBY ===
   if (roomState.gameMode === 'OFFLINE') {
@@ -28,39 +28,39 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
     };
 
     return (
-      <div className="flex flex-col h-full p-6 space-y-6">
+      <div className="flex flex-col h-full p-3 sm:p-4 space-y-3 sm:space-y-4">
         <div className="flex justify-between items-center">
-          <h1 className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
+          <h1 className="text-base sm:text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500">
             Offline Setup
           </h1>
-          <Button variant="ghost" className="!p-2 text-xs sm:text-sm" onClick={() => gameService.resetToInitialState()}>Exit</Button>
+          <Button variant="ghost" className="!p-1.5 text-[10px] sm:text-xs" onClick={() => gameService.resetToInitialState()}>Exit</Button>
         </div>
 
         {/* Player List */}
-        <div className="flex-1 overflow-y-auto space-y-2 p-2 scroll-smooth">
+        <div className="flex-1 overflow-y-auto space-y-1.5 sm:space-y-2 p-1 scroll-smooth">
           {roomState.players.length === 0 && (
-            <div className="text-center text-slate-500 dark:text-slate-400 py-8 sm:py-12 flex flex-col items-center">
-              <Users size={32} className="mb-2 opacity-50 sm:w-12 sm:h-12" />
-              <span className="text-xs sm:text-sm">Add at least 3 players to start</span>
+            <div className="text-center text-slate-500 dark:text-slate-400 py-6 sm:py-8 flex flex-col items-center">
+              <Users size={24} className="mb-1.5 opacity-40 sm:w-8 sm:h-8" />
+              <span className="text-[10px] sm:text-xs">Add at least 3 players to start</span>
             </div>
           )}
           {roomState.players.map((p, i) => (
-            <div key={p.id} className="flex items-center bg-white/40 dark:bg-black/20 p-2 sm:p-3 rounded-xl animate-in slide-in-from-left-4 backdrop-blur-sm border border-white/20 dark:border-white/5" style={{ animationDelay: `${i * 50}ms` }}>
-              <span className="text-xl sm:text-2xl mr-2 sm:mr-3 filter drop-shadow-md">{p.avatar}</span>
-              <span className="font-bold text-sm sm:text-base text-slate-800 dark:text-white flex-1">{p.name}</span>
+            <div key={p.id} className="flex items-center bg-white/30 dark:bg-black/30 p-1.5 sm:p-2 rounded-lg animate-in slide-in-from-left-4 backdrop-blur-sm border border-white/10 dark:border-white/5" style={{ animationDelay: `${i * 50}ms` }}>
+              <span className="text-base sm:text-lg mr-1.5 sm:mr-2">{p.avatar}</span>
+              <span className="font-semibold text-xs sm:text-sm text-slate-800 dark:text-white flex-1">{p.name}</span>
               <button
-                className="text-red-500 opacity-50 hover:opacity-100 px-2 transition-opacity"
+                className="text-red-500 opacity-40 hover:opacity-100 px-1.5 transition-opacity"
                 onClick={() => gameService.removeOfflinePlayer(p.id)}
               >
-                <X size={16} />
+                <X size={14} />
               </button>
             </div>
           ))}
         </div>
 
         {/* Add Player Form */}
-        <div className="bg-white/50 dark:bg-slate-800/40 p-4 rounded-3xl border border-white/40 dark:border-white/10 shadow-lg space-y-4 backdrop-blur-md">
-          <div className="flex gap-2">
+        <div className="bg-white/40 dark:bg-slate-900/50 p-2.5 sm:p-3 rounded-xl border border-white/20 dark:border-white/5 space-y-2 backdrop-blur-sm">
+          <div className="flex gap-1.5 sm:gap-2">
             <input
               type="text"
               placeholder="Player Name"
@@ -68,10 +68,10 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAddOfflinePlayer()}
               maxLength={12}
-              className={`flex-1 ${inputClass} !p-3`}
+              className={`flex-1 ${inputClass}`}
             />
-            <Button onClick={handleAddOfflinePlayer} disabled={!name.trim()} className="!py-3 !px-5 shadow-none">
-              <UserPlus size={16} className="sm:w-[18px] sm:h-[18px]" />
+            <Button onClick={handleAddOfflinePlayer} disabled={!name.trim()} className="!py-2 !px-3 sm:!py-2.5 sm:!px-4 shadow-none">
+              <UserPlus size={14} className="sm:w-4 sm:h-4" />
             </Button>
           </div>
         </div>
@@ -82,7 +82,7 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
           onClick={() => gameService.goToSettings()}
           className={canStart ? 'animate-pulse' : ''}
         >
-          Continue to Settings ({roomState.players.length}) &rarr;
+          Continue ({roomState.players.length}) &rarr;
         </Button>
       </div>
     );
@@ -94,28 +94,28 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
     const canStart = roomState.players.length >= 3;
 
     return (
-      <div className="flex flex-col h-full p-6 space-y-6">
-        <div className="bg-white/50 dark:bg-slate-800/40 p-6 rounded-3xl border border-white/50 dark:border-white/10 shadow-xl backdrop-blur-md">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-xl font-bold text-slate-800 dark:text-white">Player Lobby</h1>
-            <div className="bg-blue-100 dark:bg-blue-900/30 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30 flex items-center gap-1">
-              <Users size={12} className="sm:w-[14px] sm:h-[14px]" />
+      <div className="flex flex-col h-full p-3 sm:p-4 space-y-3 sm:space-y-4">
+        <div className="bg-white/40 dark:bg-slate-900/50 p-3 sm:p-4 rounded-2xl border border-white/20 dark:border-white/5 backdrop-blur-sm">
+          <div className="flex justify-between items-center mb-2 sm:mb-3">
+            <h1 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white">Lobby</h1>
+            <div className="bg-blue-900/20 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-semibold text-blue-400 border border-blue-800/30 flex items-center gap-0.5 sm:gap-1">
+              <Users size={10} className="sm:w-3 sm:h-3" />
               {roomState.players.length}/12
             </div>
           </div>
-          <div className="text-center p-4 bg-white/60 dark:bg-black/30 rounded-2xl border border-white/30 dark:border-white/5 mb-4 relative overflow-hidden group">
-            <p className="text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-widest mb-0.5 sm:mb-1 font-bold">Room Code</p>
-            <p className="text-2xl sm:text-3xl md:text-4xl font-mono font-black text-blue-600 dark:text-blue-400 tracking-widest select-all relative z-10">{roomState.roomCode}</p>
+          <div className="text-center p-2.5 sm:p-3 bg-white/40 dark:bg-black/40 rounded-xl border border-white/10 dark:border-white/5 mb-2 sm:mb-3 relative overflow-hidden">
+            <p className="text-slate-500 dark:text-slate-500 text-[9px] uppercase tracking-wider mb-0.5 font-semibold">Room Code</p>
+            <p className="text-xl sm:text-2xl font-mono font-black text-blue-500 dark:text-blue-400 tracking-widest select-all relative z-10">{roomState.roomCode}</p>
           </div>
 
-          <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden mb-2">
+          <div className="w-full bg-slate-700 h-1.5 rounded-full overflow-hidden mb-1.5">
             <div
-              className="bg-gradient-to-r from-green-400 to-green-500 h-full transition-all duration-500 shadow-[0_0_10px_rgba(74,222,128,0.5)]"
+              className="bg-gradient-to-r from-green-500 to-green-600 h-full transition-all duration-500"
               style={{ width: `${Math.min((roomState.players.length / 3) * 100, 100)}%` }}
             />
           </div>
-          <p className={`text-xs font-bold text-center ${canStart ? 'text-green-600 dark:text-green-400' : 'text-slate-400'}`}>
-            {canStart ? 'Ready to begin!' : `${3 - roomState.players.length} more needed`}
+          <p className={`text-[10px] font-semibold text-center ${canStart ? 'text-green-500' : 'text-slate-500'}`}>
+            {canStart ? 'Ready!' : `${3 - roomState.players.length} more needed`}
           </p>
         </div>
 

@@ -82,15 +82,15 @@ const App: React.FC = () => {
     // Interstitial Screen (Pass Phone)
     if (isOffline && roomState.isTurnHidden && roomState.phase !== GamePhase.DISCUSSION && roomState.phase !== GamePhase.RESULTS && currentPlayer) {
       return (
-        <div className="flex flex-col items-center justify-center h-full p-4 sm:p-6 space-y-4 sm:space-y-6 animate-in fade-in">
-          <div className="text-center space-y-2 sm:space-y-3">
-            <p className="text-slate-400 uppercase tracking-widest text-xs sm:text-sm font-bold">Pass Device To</p>
-            <div className="text-5xl sm:text-6xl md:text-7xl animate-bounce filter drop-shadow-xl">{currentPlayer.avatar}</div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white">{currentPlayer.name}</h1>
+        <div className="flex flex-col items-center justify-center h-full p-3 sm:p-4 space-y-3 sm:space-y-4 animate-in fade-in">
+          <div className="text-center space-y-1.5 sm:space-y-2">
+            <p className="text-slate-500 uppercase tracking-wider text-[10px] sm:text-xs font-semibold">Pass Device To</p>
+            <div className="text-3xl sm:text-4xl animate-bounce">{currentPlayer.avatar}</div>
+            <h1 className="text-lg sm:text-xl font-bold text-white">{currentPlayer.name}</h1>
           </div>
 
-          <div className="p-4 sm:p-6 bg-slate-800/50 rounded-2xl sm:rounded-3xl border border-white/10 text-center max-w-xs backdrop-blur-md shadow-xl">
-            <p className="text-slate-300 mb-4 sm:mb-6 font-medium text-sm sm:text-base">Ensure no one else is looking at the screen!</p>
+          <div className="p-3 sm:p-4 bg-slate-900/70 rounded-xl sm:rounded-2xl border border-white/5 text-center max-w-xs backdrop-blur-sm">
+            <p className="text-slate-400 mb-3 sm:mb-4 font-normal text-xs sm:text-sm">Ensure no one else is looking</p>
             <Button fullWidth onClick={() => gameService.revealTurn()}>
               I am {currentPlayer.name}
             </Button>
@@ -161,24 +161,23 @@ const App: React.FC = () => {
 
   return (
     <div className="dark">
-      <div className="relative min-h-screen w-full bg-slate-950 overflow-hidden transition-colors duration-500 font-sans text-white">
+      <div className="relative min-h-screen w-full bg-black overflow-hidden transition-colors duration-300 font-sans text-white">
 
-        {/* === LIQUID BACKGROUND BLOB ANIMATIONS === */}
+        {/* === SUBTLE BACKGROUND GRADIENT === */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-600/40 rounded-full mix-blend-screen filter blur-3xl opacity-50 animate-blob"></div>
-          <div className="absolute top-0 -right-4 w-96 h-96 bg-blue-600/40 rounded-full mix-blend-screen filter blur-3xl opacity-50 animate-blob animation-delay-2000"></div>
-          <div className="absolute -bottom-8 left-20 w-96 h-96 bg-pink-600/40 rounded-full mix-blend-screen filter blur-3xl opacity-50 animate-blob animation-delay-4000"></div>
+          <div className="absolute top-0 -left-4 w-80 h-80 bg-purple-900/20 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-blob"></div>
+          <div className="absolute -bottom-8 right-0 w-80 h-80 bg-blue-900/20 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
         </div>
 
         {/* === MAIN CONTENT CONTAINER === */}
-        <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-2 sm:p-4 md:p-8">
+        <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-1 sm:p-3 md:p-6">
 
           {/* Glass Card */}
-          <div className="w-full max-w-full sm:max-w-md md:max-w-lg lg:max-w-2xl glass-panel rounded-none sm:rounded-[2rem] md:rounded-[3rem] shadow-2xl overflow-hidden min-h-screen sm:min-h-[600px] md:h-[800px] relative flex flex-col transition-all duration-300">
+          <div className="w-full max-w-full sm:max-w-md md:max-w-lg glass-panel rounded-none sm:rounded-2xl md:rounded-3xl shadow-xl overflow-hidden min-h-screen sm:min-h-[500px] md:h-[700px] relative flex flex-col transition-all duration-200">
             {/* Header Phase Indicator */}
             {roomState.phase !== GamePhase.LOBBY && (
-              <div className="absolute top-4 left-0 w-full text-center z-20 pointer-events-none">
-                <span className="px-3 sm:px-4 py-1 sm:py-1.5 bg-white/10 rounded-full text-xs sm:text-[10px] font-bold tracking-widest uppercase text-slate-300 backdrop-blur-sm border border-white/10 shadow-lg inline-block">
+              <div className="absolute top-2 left-0 w-full text-center z-20 pointer-events-none">
+                <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-white/5 rounded-full text-[9px] sm:text-[10px] font-semibold tracking-wider uppercase text-slate-400 backdrop-blur-sm border border-white/5 inline-block">
                   {roomState.phase.replace('_', ' ')} {isOffline ? '• OFFLINE' : ''}
                 </span>
               </div>
@@ -191,15 +190,14 @@ const App: React.FC = () => {
           {/* Footer Credit */}
           <button
             onClick={() => setShowCredits(true)}
-            className="mt-6 text-xs font-medium text-slate-400 hover:text-purple-400 transition-colors duration-300 text-center opacity-60 hover:opacity-100 group relative"
+            className="mt-3 text-[10px] font-normal text-slate-500 hover:text-purple-500 transition-colors duration-200 text-center opacity-50 hover:opacity-100 group relative"
           >
-            <span className="relative z-10 flex items-center gap-1.5 justify-center">
-              <Gamepad2 size={16} className="text-purple-400 group-hover:scale-110 transition-transform duration-300" />
+            <span className="relative z-10 flex items-center gap-1 justify-center">
+              <Gamepad2 size={12} className="text-purple-500 group-hover:scale-105 transition-transform duration-200" />
               <span>Imposter Hunt</span>
-              <span className="text-[10px] opacity-50">•</span>
-              <span className="text-[10px] opacity-50 group-hover:opacity-100 transition-opacity">Click for credits</span>
+              <span className="text-[8px] opacity-40">•</span>
+              <span className="text-[8px] opacity-40 group-hover:opacity-80 transition-opacity">Credits</span>
             </span>
-            <div className="absolute inset-0 bg-purple-500/20 rounded-lg blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           </button>
 
           {/* PWA Install Prompt */}

@@ -48,27 +48,26 @@ export const Results: React.FC<Props> = ({ roomState }) => {
     const votedOutPlayer = !tie && votedOutId ? roomState.players.find(p => p.id === votedOutId) : null;
 
     return (
-        <div className="flex flex-col h-full p-6 overflow-y-auto w-full">
+        <div className="flex flex-col h-full p-3 sm:p-4 overflow-y-auto w-full">
             {/* Header Banner */}
             <div className={`
-            p-8 rounded-3xl text-center mb-8 shadow-2xl relative overflow-hidden flex flex-col items-center justify-center min-h-[200px]
+            p-4 sm:p-6 rounded-2xl text-center mb-4 sm:mb-6 shadow-xl relative overflow-hidden flex flex-col items-center justify-center min-h-[140px] sm:min-h-[180px]
             ${impostersWon
-                    ? 'bg-gradient-to-br from-red-500 to-rose-700'
-                    : 'bg-gradient-to-br from-blue-500 to-indigo-700'}
+                    ? 'bg-gradient-to-br from-red-600 to-rose-800'
+                    : 'bg-gradient-to-br from-blue-600 to-indigo-800'}
         `}>
-                {/* Confetti or particles could go here */}
                 <div className="relative z-10">
-                    <div className="mb-4">
+                    <div className="mb-2 sm:mb-3">
                         {impostersWon ? (
-                            <Eye size={72} className="text-white animate-bounce" strokeWidth={2.5} />
+                            <Eye size={48} className="text-white animate-bounce sm:w-14 sm:h-14" strokeWidth={2} />
                         ) : (
-                            <Trophy size={72} className="text-yellow-300 animate-bounce" strokeWidth={2.5} />
+                            <Trophy size={48} className="text-yellow-300 animate-bounce sm:w-14 sm:h-14" strokeWidth={2} />
                         )}
                     </div>
-                    <h1 className="text-4xl font-black text-white uppercase tracking-tighter filter drop-shadow-md">
+                    <h1 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tight">
                         {impostersWon ? 'IMPOSTERS WIN!' : 'INNOCENTS WIN!'}
                     </h1>
-                    <p className="text-white/90 font-medium mt-2 text-sm bg-black/20 px-4 py-1 rounded-full inline-block backdrop-blur-sm">
+                    <p className="text-white/80 font-normal mt-1 text-[10px] sm:text-xs bg-black/20 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full inline-block backdrop-blur-sm">
                         {impostersWon
                             ? (votedOutPlayer ? `${votedOutPlayer.name} was Innocent` : 'No one was caught')
                             : 'The Imposter was caught'}
@@ -77,37 +76,37 @@ export const Results: React.FC<Props> = ({ roomState }) => {
             </div>
 
             {/* Stats Grid */}
-            <div className="space-y-4 mb-8">
-                <div className="bg-white/40 dark:bg-slate-800/40 p-5 rounded-2xl border border-white/40 dark:border-white/10 backdrop-blur-md shadow-sm">
-                    <h3 className="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-4 text-center">Voted Out</h3>
+            <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
+                <div className="bg-white/30 dark:bg-slate-900/40 p-3 sm:p-4 rounded-xl border border-white/20 dark:border-white/5 backdrop-blur-sm">
+                    <h3 className="text-slate-600 text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider mb-2 sm:mb-3 text-center">Voted Out</h3>
                     {votedOutPlayer ? (
                         <div className="flex flex-col items-center">
-                            <span className="text-5xl mb-2 filter drop-shadow-md">{votedOutPlayer.avatar}</span>
-                            <span className="font-bold text-lg text-slate-900 dark:text-white">{votedOutPlayer.name}</span>
-                            <span className={`px-3 py-1 rounded-lg text-xs font-bold mt-1 ${votedOutPlayer.role === 'imposter' ? 'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-300' : 'bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300'}`}>
+                            <span className="text-3xl sm:text-4xl mb-1 sm:mb-1.5">{votedOutPlayer.avatar}</span>
+                            <span className="font-bold text-sm sm:text-base text-white">{votedOutPlayer.name}</span>
+                            <span className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-[9px] sm:text-[10px] font-semibold mt-0.5 sm:mt-1 ${votedOutPlayer.role === 'imposter' ? 'bg-red-900/50 text-red-300' : 'bg-blue-900/50 text-blue-300'}`}>
                                 {votedOutPlayer.role === 'imposter' ? 'IMPOSTER' : 'INNOCENT'}
                             </span>
                         </div>
                     ) : (
-                        <div className="text-center text-slate-500 dark:text-slate-400 italic font-medium">No one was voted out</div>
+                        <div className="text-center text-slate-500 text-xs italic font-normal">No one was voted out</div>
                     )}
                 </div>
 
-                <div className="bg-white/40 dark:bg-slate-800/40 p-5 rounded-2xl border border-white/40 dark:border-white/10 backdrop-blur-md shadow-sm">
-                    <h3 className="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-4 text-center">The Imposters</h3>
-                    <div className="flex flex-wrap justify-center gap-4">
+                <div className="bg-white/30 dark:bg-slate-900/40 p-3 sm:p-4 rounded-xl border border-white/20 dark:border-white/5 backdrop-blur-sm">
+                    <h3 className="text-slate-600 text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider mb-2 sm:mb-3 text-center">The Imposters</h3>
+                    <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
                         {imposters.map(imp => (
-                            <div key={imp.id} className="flex flex-col items-center bg-white/50 dark:bg-black/30 p-3 rounded-xl border border-red-200 dark:border-red-900/30">
-                                <span className="text-3xl mb-1 filter drop-shadow-sm">{imp.avatar}</span>
-                                <span className="font-bold text-slate-900 dark:text-white text-sm">{imp.name}</span>
+                            <div key={imp.id} className="flex flex-col items-center bg-white/40 dark:bg-black/40 p-2 sm:p-2.5 rounded-lg border border-red-900/30">
+                                <span className="text-2xl sm:text-3xl mb-0.5 sm:mb-1">{imp.avatar}</span>
+                                <span className="font-semibold text-white text-[10px] sm:text-xs">{imp.name}</span>
                             </div>
                         ))}
                     </div>
                 </div>
 
-                <div className="bg-white/60 dark:bg-slate-800/60 p-6 rounded-2xl border border-white/40 dark:border-white/10 text-center shadow-lg">
-                    <h3 className="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-2">Secret Word</h3>
-                    <p className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">{roomState.config.word}</p>
+                <div className="bg-white/40 dark:bg-slate-900/60 p-3 sm:p-4 rounded-xl border border-white/20 dark:border-white/5 text-center">
+                    <h3 className="text-slate-600 text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider mb-1 sm:mb-1.5">Secret Word</h3>
+                    <p className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500">{roomState.config.word}</p>
                 </div>
             </div>
 

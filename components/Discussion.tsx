@@ -68,17 +68,17 @@ export const Discussion: React.FC<Props> = ({ roomState, currentPlayer }) => {
   // Intro Screen: "Who Speaks First?"
   if (showIntro) {
     return (
-      <div className="flex flex-col items-center justify-center h-full p-6 animate-in zoom-in duration-500">
-        <div className="bg-blue-100 dark:bg-blue-900/40 px-4 py-1.5 rounded-full text-xs font-black tracking-widest text-blue-600 dark:text-blue-300 mb-8 border border-blue-200 dark:border-blue-500/30 shadow-sm">
+      <div className="flex flex-col items-center justify-center h-full p-3 sm:p-4 animate-in zoom-in duration-300">
+        <div className="bg-blue-900/30 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-semibold tracking-wider text-blue-400 mb-4 sm:mb-6 border border-blue-800/40">
           RANDOM SELECTION
         </div>
 
-        <h1 className="text-4xl font-black mb-2 text-slate-900 dark:text-white">First to Speak</h1>
-        <p className="text-slate-500 dark:text-slate-400 mb-12 font-medium">The discussion starts with...</p>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-1 text-white">First to Speak</h1>
+        <p className="text-slate-500 text-xs sm:text-sm mb-6 sm:mb-8 font-normal">Discussion starts with...</p>
 
-        <div className="bg-white/60 dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 p-8 rounded-[2rem] border border-white/40 dark:border-white/10 shadow-2xl flex flex-col items-center backdrop-blur-md">
-          <div className="text-8xl mb-6 filter drop-shadow-xl animate-bounce">{firstSpeaker?.avatar}</div>
-          <div className="bg-white/50 dark:bg-black/30 px-8 py-3 rounded-2xl font-black text-3xl text-slate-800 dark:text-white border border-white/20">
+        <div className="bg-white/40 dark:bg-gradient-to-br dark:from-slate-900 dark:to-black p-4 sm:p-6 rounded-2xl border border-white/20 dark:border-white/5 shadow-xl flex flex-col items-center backdrop-blur-sm">
+          <div className="text-5xl sm:text-6xl mb-3 sm:mb-4 animate-bounce">{firstSpeaker?.avatar}</div>
+          <div className="bg-white/40 dark:bg-black/40 px-4 py-1.5 sm:px-6 sm:py-2 rounded-xl font-black text-xl sm:text-2xl text-white border border-white/10">
             {firstSpeaker?.name}
           </div>
         </div>
@@ -135,16 +135,16 @@ export const Discussion: React.FC<Props> = ({ roomState, currentPlayer }) => {
         )}
 
         <div className="text-center">
-          <MessageCircle size={56} className="mb-4 text-purple-500 dark:text-purple-400" strokeWidth={2} />
-          <h2 className="text-3xl font-black text-slate-800 dark:text-white">Discussion</h2>
-          <p className="text-slate-500 dark:text-slate-400 font-medium">Describe your word, find the liar.</p>
+          <MessageCircle size={40} className="mb-2 sm:mb-3 text-purple-500" strokeWidth={2} />
+          <h2 className="text-xl sm:text-2xl font-bold text-white">Discussion</h2>
+          <p className="text-slate-500 text-xs sm:text-sm font-normal">Describe your word, find the liar</p>
         </div>
 
-        <div className="relative w-72 h-36 flex items-center justify-center bg-white/50 dark:bg-slate-800/50 rounded-[2.5rem] border border-white/40 dark:border-white/10 shadow-lg backdrop-blur-md">
-          <div className="text-7xl font-black tracking-tighter tabular-nums text-slate-900 dark:text-white font-mono filter drop-shadow-sm">
+        <div className="relative w-60 h-28 sm:w-64 sm:h-32 flex items-center justify-center bg-white/40 dark:bg-slate-900/50 rounded-2xl border border-white/20 dark:border-white/5 backdrop-blur-sm">
+          <div className="text-5xl sm:text-6xl font-black tracking-tighter tabular-nums text-white font-mono">
             {formatTime(timeLeft)}
           </div>
-          <div className="absolute -bottom-3 text-xs font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 px-4 py-1.5 rounded-full shadow-lg">
+          <div className="absolute -bottom-2 text-[9px] sm:text-[10px] font-semibold bg-black/70 text-white px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full">
             TIME LEFT
           </div>
         </div>
@@ -188,7 +188,7 @@ export const Discussion: React.FC<Props> = ({ roomState, currentPlayer }) => {
                       {index + 1}
                     </div>
 
-                    <span className="text-2xl filter drop-shadow-sm">{player.avatar}</span>
+                    <span className="text-lg sm:text-xl">{player.avatar}</span>
 
                     <div className="flex-1">
                       <span className="font-bold text-sm text-slate-800 dark:text-white">

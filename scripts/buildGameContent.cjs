@@ -323,7 +323,7 @@ const RAW_DATA = {
     { word: "Back to the Future", clueWords: ["Time", "DeLorean", "Marty", "Doc", "1985", "1955", "Clock-Tower", "88mph", "Flux-Capacitor", "Lightning", "Sci-Fi", "Hoverboard"] },
     { word: "Coco", clueWords: ["Music", "Guitar", "Miguel", "Mexico", "Dead", "Pixar", "Skeleton", "Family", "Remember-Me", "Dia-Muertos", "Animated", "Marigold"] }
   ],
-  "Kool Kids": [
+  "The Boys": [
     // Sri Lankan Animals
     { word: "Elephant", clueWords: ["Trunk", "Tusks", "Perahera", "Gathering", "Dumbo", "Minnerya", "Gentle", "Ivory", "Orphanage", "Pinnawala", "Large", "Mammal"] },
     { word: "Leopard", clueWords: ["Yala", "Spots", "Predator", "Wilpattu", "Cat", "Hunter", "Carnivore", "Tree", "Elusive", "Big-Cat", "Sri-Lanka", "Kotiya"] },

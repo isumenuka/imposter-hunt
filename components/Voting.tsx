@@ -23,21 +23,21 @@ export const Voting: React.FC<Props> = ({ roomState, currentPlayer }) => {
 
   if (hasVoted) {
     return (
-      <div className="flex flex-col items-center justify-center h-full p-8 text-center space-y-6">
-        <Inbox size={64} className="animate-pulse text-blue-500 dark:text-blue-400" />
-        <h2 className="text-3xl font-black text-slate-900 dark:text-white">Vote Locked</h2>
-        <p className="text-slate-500 dark:text-slate-400 font-medium">Waiting for others...</p>
+      <div className="flex flex-col items-center justify-center h-full p-4 sm:p-6 text-center space-y-3 sm:space-y-4">
+        <Inbox size={48} className="animate-pulse text-blue-500" />
+        <h2 className="text-xl sm:text-2xl font-bold text-white">Vote Locked</h2>
+        <p className="text-slate-500 text-xs sm:text-sm font-normal">Waiting for others...</p>
 
-        <div className="w-full max-w-xs p-4 bg-white/40 dark:bg-slate-800/40 rounded-3xl border border-white/40 dark:border-white/10 backdrop-blur-md">
-          <div className="w-full bg-slate-200 dark:bg-slate-700 h-3 rounded-full overflow-hidden">
+        <div className="w-full max-w-xs p-3 bg-white/30 dark:bg-slate-900/40 rounded-2xl border border-white/10 backdrop-blur-sm">
+          <div className="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
             <div
               className="bg-blue-500 h-full transition-all duration-500 relative"
               style={{ width: `${(roomState.players.filter(p => !!p.vote).length / roomState.players.length) * 100}%` }}
             >
-              <div className="absolute inset-0 bg-white/30 w-full h-full animate-[shimmer_2s_infinite]"></div>
+              <div className="absolute inset-0 bg-white/20 w-full h-full animate-[shimmer_2s_infinite]"></div>
             </div>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 font-bold">{roomState.players.filter(p => !!p.vote).length} / {roomState.players.length} voted</p>
+          <p className="text-[10px] text-slate-500 mt-1.5 font-semibold">{roomState.players.filter(p => !!p.vote).length} / {roomState.players.length} voted</p>
         </div>
       </div>
     );
@@ -89,31 +89,31 @@ export const Voting: React.FC<Props> = ({ roomState, currentPlayer }) => {
         </div>
       )}
 
-      <div className="text-center space-y-2">
-        <div className="bg-red-100 dark:bg-red-900/30 px-3 py-1 rounded-full text-xs font-black uppercase text-red-600 dark:text-red-400 inline-block">Whodunnit?</div>
-        <h2 className="text-3xl font-black text-slate-900 dark:text-white">Cast Your Vote</h2>
-        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Tap the player you suspect most.</p>
+      <div className="text-center space-y-1.5">
+        <div className="bg-red-900/40 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-semibold uppercase text-red-400 inline-block">Whodunnit?</div>
+        <h2 className="text-xl sm:text-2xl font-bold text-white">Cast Your Vote</h2>
+        <p className="text-slate-500 text-[10px] sm:text-xs font-normal">Tap the player you suspect</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 overflow-y-auto pb-4 scrollbar-hide">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 overflow-y-auto pb-2 scrollbar-hide">
         {roomState.players.map(p => (
           <button
             key={p.id}
             onClick={() => setSelectedSuspect(p.id)}
             disabled={p.id === currentPlayer.id}
             className={`
-                    relative flex flex-col items-center justify-center p-4 rounded-2xl border transition-all duration-200 group
+                    relative flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-xl border transition-all duration-200 group
                     ${selectedSuspect === p.id
-                ? 'bg-red-500/90 text-white border-red-400 shadow-xl shadow-red-500/30 scale-105 z-10'
-                : 'bg-white/40 dark:bg-slate-800/40 border-white/40 dark:border-white/10 hover:bg-white/60 dark:hover:bg-slate-700/60'}
-                    ${p.id === currentPlayer.id ? 'opacity-40 cursor-not-allowed grayscale' : ''}
+                ? 'bg-red-500/90 text-white border-red-400 shadow-lg shadow-red-500/20 scale-105 z-10'
+                : 'bg-white/30 dark:bg-slate-900/40 border-white/10 dark:border-white/5 hover:bg-white/40 dark:hover:bg-slate-800/60'}
+                    ${p.id === currentPlayer.id ? 'opacity-30 cursor-not-allowed grayscale' : ''}
                 `}
           >
-            <div className="text-5xl mb-2 filter drop-shadow-sm transition-transform group-hover:scale-110">{p.avatar}</div>
-            <div className={`font-bold text-sm ${selectedSuspect === p.id ? 'text-white' : 'text-slate-800 dark:text-white'}`}>{p.name}</div>
+            <div className="text-3xl sm:text-4xl mb-1 sm:mb-1.5 transition-transform group-hover:scale-105">{p.avatar}</div>
+            <div className={`font-semibold text-xs sm:text-sm ${selectedSuspect === p.id ? 'text-white' : 'text-slate-800 dark:text-white'}`}>{p.name}</div>
             {selectedSuspect === p.id && (
-              <div className="absolute top-2 right-2 bg-white text-red-500 w-6 h-6 rounded-full flex items-center justify-center shadow-md">
-                <CheckCircle2 size={16} strokeWidth={3} />
+              <div className="absolute top-1.5 right-1.5 bg-white text-red-500 w-5 h-5 rounded-full flex items-center justify-center">
+                <CheckCircle2 size={14} strokeWidth={3} />
               </div>
             )}
           </button>
