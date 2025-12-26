@@ -13,7 +13,8 @@ export const GAME_CATEGORIES = [
   'TV Shows',
   'Celebrities',
   'Locations',
-  'Movies'
+  'Movies',
+  'Kool Kids'
 ];
 
 export const DEFAULT_ROUND_DURATION = 180; // 3 minutes
