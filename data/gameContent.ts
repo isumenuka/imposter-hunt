@@ -29,6 +29,33 @@ const recentlyUsedWords: Record<string, string[]> = {};
 // Format: { "categoryName": [indices...] }
 const shuffleBags: Record<string, number[]> = {};
 
+// ============================================
+// SUB-CATEGORY MANAGEMENT FOR "THE BOYS"
+// ============================================
+
+// Define sub-categories for "The Boys" category
+// Each sub-category has a name and the index range in the array
+const THE_BOYS_SUBCATEGORIES = [
+  { name: "Sri Lankan Animals", startIndex: 0, endIndex: 9 },      // Lines 328-337 (10 items)
+  { name: "Sri Lankan Foods", startIndex: 10, endIndex: 25 },      // Lines 340-355 (16 items)
+  { name: "Sri Lankan Brands", startIndex: 26, endIndex: 35 },     // Lines 357-367 (10 items)
+  { name: "Objects", startIndex: 36, endIndex: 49 },               // Lines 369-382 (13 items)
+  { name: "Popular Places", startIndex: 50, endIndex: 63 },        // Lines 384-399 (15 items)
+  { name: "More Animals", startIndex: 64, endIndex: 68 },          // Lines 402-407 (5 items)
+  { name: "More Foods", startIndex: 69, endIndex: 78 },            // Lines 409-419 (10 items)
+  { name: "More Brands", startIndex: 79, endIndex: 88 },           // Lines 421-431 (10 items)
+  { name: "More Objects", startIndex: 89, endIndex: 95 },          // Lines 433-443 (7 items)
+  { name: "More Places", startIndex: 96, endIndex: 100 },          // Lines 445-455 (5 items)
+  { name: "Even More Foods", startIndex: 101, endIndex: 110 },     // Lines 458-468 (10 items)
+  { name: "Even More Brands", startIndex: 111, endIndex: 121 },    // Lines 470-481 (11 items)
+  { name: "Even More Objects", startIndex: 122, endIndex: 128 },   // Lines 483-490 (7 items)
+  { name: "Even More Animals", startIndex: 129, endIndex: 135 },   // Lines 492-499 (7 items)
+  { name: "Even More Places", startIndex: 136, endIndex: 152 }     // Lines 501-517 (17 items)
+];
+
+// Track the last used sub-category for "The Boys"
+let lastUsedSubCategory: string | null = null;
+
 /**
  * Fisher-Yates shuffle algorithm for array shuffling
  * Ensures uniform random distribution
@@ -58,6 +85,7 @@ const getShuffleBag = (category: string, totalWords: number): number[] => {
 /**
  * Improved word selection with history tracking and shuffle bag algorithm
  * Prevents getting the same word until a majority of words have been seen
+ * Special handling for "The Boys" category with sub-category rotation
  */
 export const getGameContent = (category: string): { word: string, associationWord: string } => {
   if (!cachedData) {
@@ -70,6 +98,62 @@ export const getGameContent = (category: string): { word: string, associationWor
     // Fallback if category empty or not found
     return { word: "Error", associationWord: "Error" };
   }
+
+  // ============================================
+  // SPECIAL HANDLING FOR "THE BOYS" CATEGORY
+  // ============================================
+  if (category === "The Boys") {
+    // Select a random sub-category different from the last one used
+    let selectedSubCategory;
+    let attempts = 0;
+    const maxAttempts = 20;
+    
+    while (attempts < maxAttempts) {
+      const randomSubIndex = Math.floor(Math.random() * THE_BOYS_SUBCATEGORIES.length);
+      const subCategory = THE_BOYS_SUBCATEGORIES[randomSubIndex];
+      
+      // If this is the first selection or different from last, use it
+      if (lastUsedSubCategory === null || subCategory.name !== lastUsedSubCategory) {
+        selectedSubCategory = subCategory;
+        lastUsedSubCategory = subCategory.name;
+        break;
+      }
+      
+      attempts++;
+    }
+    
+    // Fallback: if we couldn't find a different one (shouldn't happen with 15 sub-categories)
+    if (!selectedSubCategory) {
+      const randomSubIndex = Math.floor(Math.random() * THE_BOYS_SUBCATEGORIES.length);
+      selectedSubCategory = THE_BOYS_SUBCATEGORIES[randomSubIndex];
+      lastUsedSubCategory = selectedSubCategory.name;
+    }
+    
+    // Get words from the selected sub-category
+    const subCategoryWords = categoryData.slice(
+      selectedSubCategory.startIndex,
+      selectedSubCategory.endIndex + 1
+    );
+    
+    // Pick a random word from this sub-category
+    const randomIndex = Math.floor(Math.random() * subCategoryWords.length);
+    const selectedWord = subCategoryWords[randomIndex];
+    
+    // Pick a random clue from the word's clueWords array
+    const randomClueIndex = Math.floor(Math.random() * selectedWord.clueWords.length);
+    const randomClue = selectedWord.clueWords[randomClueIndex];
+    
+    console.log(`[The Boys] Selected sub-category: ${selectedSubCategory.name}, Word: ${selectedWord.word}`);
+    
+    return {
+      word: selectedWord.word,
+      associationWord: randomClue
+    };
+  }
+
+  // ============================================
+  // NORMAL HANDLING FOR OTHER CATEGORIES
+  // ============================================
 
   // Initialize recently used words list for this category if needed
   if (!recentlyUsedWords[category]) {
@@ -135,3 +219,4 @@ export const getGameContent = (category: string): { word: string, associationWor
     associationWord: randomClue
   };
 };
+
