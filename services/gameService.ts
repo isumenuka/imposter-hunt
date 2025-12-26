@@ -457,10 +457,17 @@ class GameService {
 
         if (nextIndex >= this.state.players.length) {
             // All players have seen their role, move to discussion
+            // Generate speaking order: first speaker + shuffled remaining players
+            const firstSpeakerId = this.state.firstSpeakerId!;
+            const remainingPlayers = this.state.players.filter(p => p.id !== firstSpeakerId);
+            const shuffledRemaining = fisherYatesShuffle(remainingPlayers);
+            const speakingOrder = [firstSpeakerId, ...shuffledRemaining.map(p => p.id)];
+
             this.setState({
                 phase: GamePhase.DISCUSSION,
                 activePlayerId: undefined,
-                isTurnHidden: false
+                isTurnHidden: false,
+                speakingOrder
             });
         } else {
             // Move to next player
@@ -578,6 +585,46 @@ class GameService {
         }
         // Online mode: emit to server
         this.emitAction('reset_game');
+    }
+
+    public reRandomizeSecretWord() {
+        // Offline mode: handle locally
+        if (this.state.gameMode === 'OFFLINE' &&
+            (this.state.phase === GamePhase.DISCUSSION || this.state.phase === GamePhase.VOTING)) {
+
+            // Get a new random word from the same category
+            const { word, associationWord } = getGameContent(this.state.config.category);
+
+            // Reset to REVEAL phase so everyone can see their new word
+            // Keep all roles intact, just show them the new word
+            const playersWithReset = this.state.players.map(p => ({
+                ...p,
+                isReady: false,
+                vote: undefined
+            }));
+
+            // Update config with new word and reset to reveal phase
+            this.setState({
+                phase: GamePhase.REVEAL,
+                players: playersWithReset,
+                config: {
+                    ...this.state.config,
+                    word,
+                    associationWord: this.state.config.imposterClueEnabled ? associationWord : undefined
+                },
+                activePlayerId: playersWithReset[0].id,
+                isTurnHidden: true,
+                startTime: Date.now()
+            });
+
+            console.log(`🔄 Secret word re-randomized to: ${word} - Restarting reveals`);
+            return;
+        }
+
+        // Online mode: emit to server
+        if (this.state.gameMode === 'ONLINE') {
+            this.emitAction('re_randomize_secret_word');
+        }
     }
 
     public revealTurn() {
