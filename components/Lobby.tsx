@@ -204,10 +204,10 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
     <div className="flex flex-col items-center justify-center h-full p-6 w-full">
       <div className="w-full space-y-6">
         <div className="text-center space-y-2 mb-8">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 dark:from-blue-400 dark:via-purple-400 dark:to-pink-400 tracking-tighter filter drop-shadow-sm">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white [text-shadow:_0_0_20px_rgb(168_85_247_/_40%)] bg-clip-text [-webkit-background-clip:text] [-webkit-text-fill-color:transparent] bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400 tracking-tighter">
             IMPOSTER<br />HUNT
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">Deception • Strategy • Party</p>
+          <p className="text-xs sm:text-sm text-slate-400 font-medium">Deception • Strategy • Party</p>
         </div>
 
         <div className="space-y-4">

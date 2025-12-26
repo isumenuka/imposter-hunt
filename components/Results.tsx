@@ -108,6 +108,13 @@ export const Results: React.FC<Props> = ({ roomState }) => {
                     <h3 className="text-slate-600 text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider mb-1 sm:mb-1.5">Secret Word</h3>
                     <p className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500">{roomState.config.word}</p>
                 </div>
+
+                {roomState.config.imposterClueEnabled && roomState.config.associationWord && (
+                    <div className="bg-white/40 dark:bg-slate-900/60 p-3 sm:p-4 rounded-xl border border-white/20 dark:border-white/5 text-center">
+                        <h3 className="text-slate-600 text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider mb-1 sm:mb-1.5">Imposter Clue</h3>
+                        <p className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-pink-500">{roomState.config.associationWord}</p>
+                    </div>
+                )}
             </div>
 
             {isHost ? (
