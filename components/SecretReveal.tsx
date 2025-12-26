@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Player } from '../types';
+import { Player, RoomState } from '../types';
 import { gameService } from '../services/gameService';
 import { Button } from './Button';
 import { Timer, Lock, Eye, AlertCircle, BadgeCheck } from 'lucide-react';
@@ -9,9 +9,10 @@ interface Props {
   player: Player;
   secretWord?: string;
   associationWord?: string;
+  roomState: RoomState;
 }
 
-export const SecretReveal: React.FC<Props> = ({ player, secretWord, associationWord }) => {
+export const SecretReveal: React.FC<Props> = ({ player, secretWord, associationWord, roomState }) => {
   const [isHolding, setIsHolding] = useState(false);
   const [progress, setProgress] = useState(0);
   const [revealed, setRevealed] = useState(false);
@@ -60,6 +61,8 @@ export const SecretReveal: React.FC<Props> = ({ player, secretWord, associationW
   };
 
   if (player.isReady) {
+    const notReady = roomState.players.filter(p => !p.isReady);
+
     return (
       <div className="flex flex-col items-center justify-center h-full p-4 sm:p-6 text-center space-y-3 sm:space-y-4">
         <div className="relative">
@@ -67,6 +70,21 @@ export const SecretReveal: React.FC<Props> = ({ player, secretWord, associationW
           <div className="absolute -bottom-1.5 w-full h-1.5 bg-black/10 rounded-full blur-sm"></div>
         </div>
         <h2 className="text-lg sm:text-xl font-bold text-white">Waiting for others...</h2>
+
+        {notReady.length > 0 && (
+          <div className="w-full max-w-xs space-y-2">
+            <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Not Ready</p>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {notReady.map(p => (
+                <div key={p.id} className="flex items-center gap-1 bg-white/20 dark:bg-slate-900/40 px-2 py-1 rounded-lg border border-white/10">
+                  <span className="text-base">{p.avatar}</span>
+                  <span className="text-[10px] text-slate-400 font-medium">{p.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="w-36 h-1 bg-slate-800 rounded-full overflow-hidden">
           <div className="h-full bg-blue-500 w-1/2 animate-[shimmer_1s_infinite] translate-x-[-100%]"></div>
         </div>

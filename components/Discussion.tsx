@@ -88,8 +88,8 @@ export const Discussion: React.FC<Props> = ({ roomState, currentPlayer }) => {
 
   // Main Timer Screen
   return (
-    <div className="flex flex-col h-full p-6">
-      <div className="flex-1 flex flex-col items-center justify-center space-y-8">
+    <div className="flex flex-col h-full p-3 sm:p-4 md:p-6 overflow-y-auto">
+      <div className="flex-1 flex flex-col items-center justify-start space-y-4 sm:space-y-6 md:space-y-8 py-4 max-w-2xl mx-auto w-full">
         {/* Word Reminder Section - Only in Online Mode */}
         {roomState.gameMode === 'ONLINE' && (
           <div className="w-full bg-white/50 dark:bg-slate-800/50 rounded-2xl p-4 border border-white/40 dark:border-white/10 shadow-lg backdrop-blur-md">
@@ -210,7 +210,7 @@ export const Discussion: React.FC<Props> = ({ roomState, currentPlayer }) => {
 
       {/* Admin Re-Randomize Button */}
       {isAdmin && (
-        <div className="space-y-3">
+        <div className="space-y-3 max-w-2xl mx-auto w-full">
           <Button
             fullWidth
             onClick={() => setShowReRandomizeConfirm(true)}

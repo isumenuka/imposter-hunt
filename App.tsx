@@ -128,6 +128,7 @@ const App: React.FC = () => {
             player={currentPlayer}
             secretWord={roomState.config.word}
             associationWord={roomState.config.associationWord}
+            roomState={roomState}
           />
         );
 

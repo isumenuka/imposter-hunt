@@ -22,6 +22,8 @@ export const Voting: React.FC<Props> = ({ roomState, currentPlayer }) => {
   const hasVoted = !!currentPlayer.vote;
 
   if (hasVoted) {
+    const notVoted = roomState.players.filter(p => !p.vote);
+
     return (
       <div className="flex flex-col items-center justify-center h-full p-4 sm:p-6 text-center space-y-3 sm:space-y-4">
         <Inbox size={48} className="animate-pulse text-blue-500" />
@@ -39,6 +41,20 @@ export const Voting: React.FC<Props> = ({ roomState, currentPlayer }) => {
           </div>
           <p className="text-[10px] text-slate-500 mt-1.5 font-semibold">{roomState.players.filter(p => !!p.vote).length} / {roomState.players.length} voted</p>
         </div>
+
+        {notVoted.length > 0 && (
+          <div className="w-full max-w-xs space-y-2">
+            <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Not Voted</p>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {notVoted.map(p => (
+                <div key={p.id} className="flex items-center gap-1 bg-white/20 dark:bg-slate-900/40 px-2 py-1 rounded-lg border border-white/10">
+                  <span className="text-base">{p.avatar}</span>
+                  <span className="text-[10px] text-slate-400 font-medium">{p.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
