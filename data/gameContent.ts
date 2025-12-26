@@ -58,53 +58,17 @@ const getShuffleBag = (category: string, totalWords: number): number[] => {
 /**
  * Improved word selection with history tracking and shuffle bag algorithm
  * Prevents getting the same word until a majority of words have been seen
- * 
- * SPECIAL HANDLING FOR "The Boys" CATEGORY:
- * "The Boys" has multiple subcategories mixed together. When this category
- * is selected, we randomly pick from one of the subcategories to get variety.
  */
 export const getGameContent = (category: string): { word: string, associationWord: string } => {
   if (!cachedData) {
     cachedData = decodeData(PROTECTED_DATA_STRING);
   }
 
-  let categoryData = cachedData?.[category] || [];
+  const categoryData = cachedData?.[category] || [];
   
   if (categoryData.length === 0) {
     // Fallback if category empty or not found
     return { word: "Error", associationWord: "Error" };
-  }
-
-  // SPECIAL HANDLING FOR "The Boys" CATEGORY
-  // The Boys category contains multiple subcategories that should be randomly selected
-  if (category === "The Boys") {
-    // Define subcategory ranges based on the data structure
-    const subcategories = [
-      { name: "Sri Lankan Animals", start: 0, end: 9 },      // Elephant to Water Buffalo (10 items)
-      { name: "Sri Lankan Foods", start: 10, end: 25 },      // Kottu to Lamprais (16 items)
-      { name: "Sri Lankan Brands", start: 26, end: 36 },     // Dialog to Singer (11 items)
-      { name: "Objects", start: 37, end: 52 },               // Tuktuk to Lottery Ticket (16 items)
-      { name: "Popular Places", start: 53, end: 69 },        // Sigiriya to Unawatuna (17 items)
-      { name: "More Animals", start: 70, end: 76 },          // Jungle Fowl to Palm Civet (7 items)
-      { name: "More Foods", start: 77, end: 86 },            // Pol Roti to Tipitip (10 items)
-      { name: "More Brands", start: 87, end: 96 },           // Mobitel to Diva (10 items)
-      { name: "More Objects", start: 97, end: 103 },         // Coconut Scraper to Exercise Book (7 items)
-      { name: "More Places", start: 104, end: 113 },         // Trincomalee to Negombo (10 items)
-      { name: "Even More Foods", start: 114, end: 123 },     // Lavariya to Batu Moju (10 items)
-      { name: "Even More Brands", start: 124, end: 134 },    // Ritzbury to Diva (11 items)
-      { name: "Even More Objects", start: 135, end: 141 },   // Miris Gala to Cane Basket (7 items)
-      { name: "Even More Animals", start: 142, end: 148 },   // Blue Magpie to Palm Civet (7 items)
-      { name: "Final Places", start: 149, end: 191 }         // Kataragama to Pettah (43 items)
-    ];
-    
-    // Randomly select a subcategory
-    const randomSubcategory = subcategories[Math.floor(Math.random() * subcategories.length)];
-    
-    // Get words only from that subcategory
-    categoryData = categoryData.slice(randomSubcategory.start, randomSubcategory.end + 1);
-    
-    // Use a modified category key for shuffle bag tracking
-    category = "The Boys - " + randomSubcategory.name;
   }
 
   // Initialize recently used words list for this category if needed

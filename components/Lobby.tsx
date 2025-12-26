@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Player, RoomState } from '../types';
 import { gameService } from '../services/gameService';
 import { Button } from './Button';
-import { AvatarSelector } from './AvatarSelector';
 import { Users, User, X, UserPlus, Shield } from 'lucide-react';
 
 interface Props {
@@ -93,17 +92,6 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
   if (currentPlayer && roomState.connectionStatus === 'CONNECTED') {
     const isHost = currentPlayer.isHost;
     const canStart = roomState.players.length >= 3;
-    const [showEmojiSelector, setShowEmojiSelector] = useState(false);
-
-    // Get list of taken avatars
-    const takenAvatars = roomState.players
-      .filter(p => p.id !== currentPlayer.id)
-      .map(p => p.avatar);
-
-    const handleAvatarSelect = (avatar: string) => {
-      gameService.updateAvatar(avatar);
-      setShowEmojiSelector(false);
-    };
 
     return (
       <div className="flex flex-col h-full p-3 sm:p-4 space-y-3 sm:space-y-4">
@@ -129,29 +117,6 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
           <p className={`text-[10px] font-semibold text-center ${canStart ? 'text-green-500' : 'text-slate-500'}`}>
             {canStart ? 'Ready!' : `${3 - roomState.players.length} more needed`}
           </p>
-        </div>
-
-        {/* Emoji Selector */}
-        <div className="bg-white/40 dark:bg-slate-900/50 rounded-2xl border border-white/20 dark:border-white/5 backdrop-blur-sm overflow-hidden">
-          <button
-            onClick={() => setShowEmojiSelector(!showEmojiSelector)}
-            className="w-full p-3 flex items-center justify-between hover:bg-white/20 dark:hover:bg-white/5 transition-colors"
-          >
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">{currentPlayer.avatar}</span>
-              <span className="font-bold text-sm text-slate-800 dark:text-white">Choose Your Emoji</span>
-            </div>
-            <span className={`text-slate-600 dark:text-slate-400 transition-transform ${showEmojiSelector ? 'rotate-180' : ''}`}>▼</span>
-          </button>
-          {showEmojiSelector && (
-            <div className="p-3 border-t border-white/10 dark:border-white/5 animate-in slide-in-from-top-2">
-              <AvatarSelector
-                selectedAvatar={currentPlayer.avatar}
-                onSelect={handleAvatarSelect}
-                takenAvatars={takenAvatars}
-              />
-            </div>
-          )}
         </div>
 
         <div className="flex-1 overflow-y-auto space-y-3 p-1">

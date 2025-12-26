@@ -3,8 +3,6 @@ import { Player, RoomState } from '../types';
 import { gameService } from '../services/gameService';
 import { Button } from './Button';
 import { MessageCircle, RefreshCw, Eye, EyeOff } from 'lucide-react';
-import { ChatBox } from './ChatBox';
-
 
 interface Props {
   roomState: RoomState;
@@ -267,9 +265,6 @@ export const Discussion: React.FC<Props> = ({ roomState, currentPlayer }) => {
           </div>
         </div>
       )}
-
-      {/* Chat Box - Only in Online Mode */}
-      {roomState.gameMode === 'ONLINE' && <ChatBox roomState={roomState} currentPlayer={currentPlayer} />}
     </div>
   );
 };
