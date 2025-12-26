@@ -224,6 +224,12 @@ class GameService {
             console.log(`🔄 Player reconnected: ${data.playerId}`);
         });
 
+        // Chat message received
+        this.socket.on('chat_message', (chatMessage: any) => {
+            console.log(`💬 Chat message from ${chatMessage.playerName}`);
+            // Messages are already in room_state, but we can use this for instant feedback
+        });
+
         // Connection error
         this.socket.on('connect_error', (error) => {
             console.error('❌ Connection error:', error.message);
@@ -382,6 +388,17 @@ class GameService {
     public updatePlayerCategories(playerId: string, categories: string[]) {
         this.emitAction('update_player_categories', { categories });
     }
+
+    public updateAvatar(avatar: string) {
+        // Offline mode: update local player avatar
+        if (this.state.gameMode === 'OFFLINE') {
+            // Not applicable for offline mode since avatars are set during player creation
+            return;
+        }
+        // Online mode: emit to server
+        this.emitAction('update_avatar', { avatar });
+    }
+
 
     public startGame(config: GameConfig) {
         // Offline mode: start offline game
@@ -569,6 +586,7 @@ class GameService {
                 winners: undefined,
                 startTime: undefined,
                 firstSpeakerId: undefined,
+                messages: [], // Clear chat history
                 config: {
                     ...this.state.config,
                     word: undefined,
@@ -625,6 +643,21 @@ class GameService {
         if (this.state.gameMode === 'ONLINE') {
             this.emitAction('re_randomize_secret_word');
         }
+    }
+
+    public sendChatMessage(message: string) {
+        if (this.state.gameMode === 'OFFLINE') {
+            // Chat disabled in offline mode
+            console.warn('Chat is not available in offline mode');
+            return;
+        }
+
+        if (!this.socket || !this.socket.connected) {
+            console.warn('Not connected to server');
+            return;
+        }
+
+        this.emitAction('send_message', { message });
     }
 
     public revealTurn() {

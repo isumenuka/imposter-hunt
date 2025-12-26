@@ -142,7 +142,7 @@ export const Credits: React.FC<CreditsProps> = ({ onClose }) => {
                         {/* Version & GitHub */}
                         <div className="text-center space-y-2 sm:space-y-2.5 pt-2 sm:pt-3">
                             <p className="text-[10px] sm:text-xs text-slate-500">
-                                Version 2.0.0
+                                Version 3.0.0
                             </p>
                             <a
                                 href="https://github.com/isumenuka/imposter-hunt"
