@@ -12,6 +12,20 @@ const GAME_CATEGORIES = [
 
 const AVATARS = ['🦊', '🐼', '🦁', '🐸', '🐙', '🦄', '🐲', '🦉', '🐺', '🦈'];
 
+/**
+ * Fisher-Yates shuffle algorithm for fair randomization
+ * @param {Array} array - Array to shuffle
+ * @returns {Array} Shuffled array
+ */
+function fisherYatesShuffle(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+}
+
 class GameLogic {
     /**
      * Assign random unique avatars to players
@@ -111,9 +125,17 @@ class GameLogic {
      */
     startDiscussion(players) {
         const randomIndex = Math.floor(Math.random() * players.length);
+        const firstSpeakerId = players[randomIndex].id;
+
+        // Generate speaking order: first speaker + shuffled remaining players
+        const remainingPlayers = players.filter(p => p.id !== firstSpeakerId);
+        const shuffledRemaining = fisherYatesShuffle(remainingPlayers);
+        const speakingOrder = [firstSpeakerId, ...shuffledRemaining.map(p => p.id)];
+
         return {
             phase: 'DISCUSSION',
-            firstSpeakerId: players[randomIndex].id,
+            firstSpeakerId,
+            speakingOrder,
             startTime: Date.now()
         };
     }
@@ -266,6 +288,34 @@ class GameLogic {
 
         // In RESULTS phase, show everything
         return roomState;
+    }
+
+    /**
+     * Re-randomize secret word (keep roles intact)
+     * @param {Object} config - Current game config
+     * @param {Array} players - Current players with roles
+     * @returns {Promise<Object>} Updated game state
+     */
+    async reRandomizeSecretWord(config, players) {
+        // Generate new word and association word from same category
+        const { word, associationWord } = await aiService.generateGameContent(config.category);
+
+        // Reset player ready states and votes, keep roles
+        const resetPlayers = players.map(p => ({
+            ...p,
+            isReady: false,
+            vote: undefined
+        }));
+
+        return {
+            phase: 'REVEAL',
+            players: resetPlayers,
+            config: {
+                ...config,
+                word,
+                associationWord: config.imposterClueEnabled ? associationWord : undefined
+            }
+        };
     }
 
     /**

@@ -381,6 +381,60 @@ io.on('connection', (socket) => {
         }
     });
 
+    // ========== RE-RANDOMIZE SECRET WORD ==========
+    socket.on('re_randomize_secret_word', async (data) => {
+        try {
+            const roomCode = gameManager.getRoomCodeForSocket(socket.id);
+            if (!roomCode) return;
+
+            const room = gameManager.getRoom(roomCode);
+            if (!room) return;
+
+            // Verify requester is host
+            const playerId = gameManager.getPlayerIdFromSocket(socket.id, roomCode);
+            const player = room.roomState.players.find(p => p.id === playerId);
+
+            if (!player?.isHost) {
+                socket.emit('error', { message: 'Only host can re-randomize' });
+                return;
+            }
+
+            // Only allow during DISCUSSION or VOTING phase
+            if (room.roomState.phase !== 'DISCUSSION' && room.roomState.phase !== 'VOTING') {
+                socket.emit('error', { message: 'Can only re-randomize during discussion or voting' });
+                return;
+            }
+
+            // Re-randomize secret word (async due to AI generation)
+            const newGameState = await gameLogic.reRandomizeSecretWord(
+                room.roomState.config,
+                room.roomState.players
+            );
+
+            // Keep firstSpeakerId and startTime
+            gameManager.updateRoomState(roomCode, {
+                ...newGameState,
+                firstSpeakerId: room.roomState.firstSpeakerId,
+                startTime: Date.now()
+            });
+
+            // Send filtered state to each player
+            room.roomState.players.forEach(p => {
+                const playerSocket = gameManager.getRoom(roomCode).players.get(p.id);
+                if (playerSocket) {
+                    const filteredState = gameLogic.filterStateForPlayer(room.roomState, p.id);
+                    io.to(playerSocket).emit('room_state', filteredState);
+                }
+            });
+
+            console.log(`🔄 Secret word re-randomized in room ${roomCode}`);
+
+        } catch (error) {
+            console.error('Error re-randomizing secret word:', error);
+            socket.emit('error', { message: error.message });
+        }
+    });
+
     // ========== DISCONNECT ==========
     socket.on('disconnect', () => {
         console.log(`🔌 Client disconnected: ${socket.id}`);

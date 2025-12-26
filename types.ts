@@ -36,6 +36,7 @@ export interface RoomState {
   config: GameConfig;
   startTime?: number;
   firstSpeakerId?: string;
+  speakingOrder?: string[]; // Array of player IDs representing speaking order
   winners?: 'innocent' | 'imposter';
   connectionStatus?: 'CONNECTED' | 'DISCONNECTED' | 'CONNECTING';
   error?: string; // Error message for failed operations
@@ -63,7 +64,8 @@ export type GameActionType =
   // Offline specific
   | 'ADD_OFFLINE_PLAYER'
   | 'NEXT_OFFLINE_TURN'
-  | 'REVEAL_TURN'; // User clicked "I am ready" to see their turn
+  | 'REVEAL_TURN' // User clicked "I am ready" to see their turn
+  | 'RE_RANDOMIZE_SECRET_WORD'; // Admin re-randomizes secret word during game
 
 export interface GameAction {
   type: GameActionType;
