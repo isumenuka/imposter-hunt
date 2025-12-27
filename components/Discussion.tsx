@@ -202,16 +202,42 @@ export const Discussion: React.FC<Props> = ({ roomState, currentPlayer }) => {
             {isReRandomizing ? 'Re-randomizing...' : 'Re-Randomize Secret Word'}
           </Button>
 
-          <Button fullWidth onClick={handleVoteStart} variant="primary" className="shadow-xl">
-            Start Voting
-          </Button>
+          {/* Show countdown message or Start Voting button */}
+          {timeLeft > 0 ? (
+            <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-4 text-center backdrop-blur-sm">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                Voting Available In
+              </p>
+              <p className="text-2xl font-black text-white font-mono">
+                {formatTime(timeLeft)}
+              </p>
+            </div>
+          ) : (
+            <Button fullWidth onClick={handleVoteStart} variant="primary" className="shadow-xl animate-in fade-in zoom-in duration-300">
+              Start Voting
+            </Button>
+          )}
         </div>
       )}
 
+      {/* Non-admin voting status */}
       {!isAdmin && (
-        <Button fullWidth onClick={handleVoteStart} variant="primary" className="shadow-xl">
-          Start Voting
-        </Button>
+        <div className="max-w-2xl mx-auto w-full">
+          {timeLeft > 0 ? (
+            <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-4 text-center backdrop-blur-sm">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                Voting Available In
+              </p>
+              <p className="text-2xl font-black text-white font-mono">
+                {formatTime(timeLeft)}
+              </p>
+            </div>
+          ) : (
+            <Button fullWidth onClick={handleVoteStart} variant="primary" className="shadow-xl animate-in fade-in zoom-in duration-300">
+              Start Voting
+            </Button>
+          )}
+        </div>
       )}
 
       {/* Confirmation Dialog */}
