@@ -189,10 +189,12 @@ const App: React.FC = () => {
             {renderContent()}
           </div>
 
-          {/* Chat Box - Only in online mode during discussion/voting */}
+          {/* Chat Box - Only in online mode */}
           {roomState.gameMode === 'ONLINE' &&
             currentPlayer &&
-            (roomState.phase === GamePhase.DISCUSSION || roomState.phase === GamePhase.VOTING) && (
+            (roomState.phase === GamePhase.LOBBY ||
+              roomState.phase === GamePhase.DISCUSSION ||
+              roomState.phase === GamePhase.VOTING) && (
               <ChatBox roomState={roomState} currentPlayer={currentPlayer} />
             )}
 
