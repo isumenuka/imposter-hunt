@@ -7,6 +7,15 @@ export enum GamePhase {
   RESULTS = 'RESULTS'
 }
 
+export interface ChatMessage {
+  id: string;
+  playerId: string;
+  playerName: string;
+  avatar: string;
+  message: string;
+  timestamp: number;
+}
+
 export interface Player {
   id: string;
   name: string;
@@ -40,6 +49,7 @@ export interface RoomState {
   winners?: 'innocent' | 'imposter';
   connectionStatus?: 'CONNECTED' | 'DISCONNECTED' | 'CONNECTING';
   error?: string; // Error message for failed operations
+  messages?: ChatMessage[]; // Chat messages for online multiplayer
 
   // Offline Mode Specifics
   activePlayerId?: string; // Who is currently holding the phone

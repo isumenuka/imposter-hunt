@@ -627,6 +627,22 @@ class GameService {
         }
     }
 
+    public sendChatMessage(message: string) {
+        // Only available in online mode
+        if (this.state.gameMode === 'OFFLINE') {
+            console.warn('Chat not available in offline mode');
+            return;
+        }
+
+        // Validate message
+        if (!message || message.trim().length === 0) {
+            return;
+        }
+
+        // Emit to server
+        this.emitAction('send_chat_message', { message: message.trim() });
+    }
+
     public revealTurn() {
         // Offline mode only
         if (this.state.gameMode === 'OFFLINE') {

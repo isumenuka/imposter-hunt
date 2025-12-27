@@ -7,6 +7,7 @@ import { SecretReveal } from './components/SecretReveal';
 import { Discussion } from './components/Discussion';
 import { Voting } from './components/Voting';
 import { Results } from './components/Results';
+import { ChatBox } from './components/ChatBox';
 import { Button } from './components/Button';
 import { Credits } from './components/Credits';
 import { Gamepad2 } from 'lucide-react';
@@ -187,6 +188,13 @@ const App: React.FC = () => {
             {/* Render Phase Content */}
             {renderContent()}
           </div>
+
+          {/* Chat Box - Only in online mode during discussion/voting */}
+          {roomState.gameMode === 'ONLINE' &&
+            currentPlayer &&
+            (roomState.phase === GamePhase.DISCUSSION || roomState.phase === GamePhase.VOTING) && (
+              <ChatBox roomState={roomState} currentPlayer={currentPlayer} />
+            )}
 
           {/* Footer Credit */}
           <button

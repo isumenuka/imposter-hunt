@@ -381,6 +381,49 @@ io.on('connection', (socket) => {
         }
     });
 
+    // ========== SEND CHAT MESSAGE ==========
+    socket.on('send_chat_message', (data) => {
+        try {
+            const roomCode = gameManager.getRoomCodeForSocket(socket.id);
+            if (!roomCode) return;
+
+            const room = gameManager.getRoom(roomCode);
+            if (!room) return;
+
+            const playerId = gameManager.getPlayerIdFromSocket(socket.id, roomCode);
+            const player = room.roomState.players.find(p => p.id === playerId);
+
+            if (!player) return;
+
+            // Validate message
+            if (!data.message || typeof data.message !== 'string' || data.message.trim().length === 0) {
+                return;
+            }
+
+            // Create chat message
+            const chatMessage = {
+                id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                playerId: player.id,
+                playerName: player.name,
+                avatar: player.avatar,
+                message: data.message.trim().substring(0, 500), // Limit to 500 characters
+                timestamp: Date.now()
+            };
+
+            // Add message to room state
+            const messages = room.roomState.messages || [];
+            messages.push(chatMessage);
+
+            gameManager.updateRoomState(roomCode, { messages });
+
+            // Broadcast updated state to all players in room
+            io.to(roomCode).emit('room_state', room.roomState);
+
+        } catch (error) {
+            console.error('Error sending chat message:', error);
+        }
+    });
+
     // ========== RE-RANDOMIZE SECRET WORD ==========
     socket.on('re_randomize_secret_word', async (data) => {
         try {

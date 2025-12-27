@@ -347,7 +347,8 @@ class GameLogic {
             },
             startTime: undefined,
             firstSpeakerId: undefined,
-            winners: undefined
+            winners: undefined,
+            messages: [] // Clear chat history
         };
     }
 }
