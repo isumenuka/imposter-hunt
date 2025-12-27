@@ -92,6 +92,48 @@ export const Results: React.FC<Props> = ({ roomState }) => {
                     )}
                 </div>
 
+                {/* Vote Breakdown Section */}
+                <div className="bg-white/30 dark:bg-slate-900/40 p-3 sm:p-4 rounded-xl border border-white/20 dark:border-white/5 backdrop-blur-sm">
+                    <h3 className="text-slate-600 text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider mb-2 sm:mb-3 text-center">Vote Breakdown</h3>
+
+                    {Object.keys(votes).length > 0 ? (
+                        <div className="space-y-2">
+                            {Object.entries(votes)
+                                .sort(([, a], [, b]) => b - a) // Sort by vote count (descending)
+                                .map(([playerId, voteCount]) => {
+                                    const player = roomState.players.find(p => p.id === playerId);
+                                    if (!player) return null;
+
+                                    const percentage = (voteCount / roomState.players.length) * 100;
+
+                                    return (
+                                        <div key={playerId} className="bg-white/20 dark:bg-slate-800/40 p-2 sm:p-2.5 rounded-lg">
+                                            <div className="flex items-center justify-between mb-1.5">
+                                                <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
+                                                    <span className="text-lg sm:text-xl flex-shrink-0">{player.avatar}</span>
+                                                    <span className="font-bold text-xs sm:text-sm text-white truncate">{player.name}</span>
+                                                </div>
+                                                <span className="text-xs sm:text-sm font-black text-white flex-shrink-0 ml-2">
+                                                    {voteCount} {voteCount === 1 ? 'vote' : 'votes'}
+                                                </span>
+                                            </div>
+
+                                            {/* Vote Progress Bar */}
+                                            <div className="w-full bg-slate-700/50 h-1.5 sm:h-2 rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full bg-gradient-to-r from-red-500 to-orange-500 transition-all duration-500"
+                                                    style={{ width: `${percentage}%` }}
+                                                />
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                        </div>
+                    ) : (
+                        <div className="text-center text-slate-500 text-xs italic font-normal">No votes were cast</div>
+                    )}
+                </div>
+
                 <div className="bg-white/30 dark:bg-slate-900/40 p-3 sm:p-4 rounded-xl border border-white/20 dark:border-white/5 backdrop-blur-sm">
                     <h3 className="text-slate-600 text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider mb-2 sm:mb-3 text-center">The Imposters</h3>
                     <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
