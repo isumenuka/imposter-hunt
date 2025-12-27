@@ -10,7 +10,7 @@ interface Props {
 
 export const ChatBox: React.FC<Props> = ({ roomState, currentPlayer }) => {
     const [message, setMessage] = useState('');
-    const [isExpanded, setIsExpanded] = useState(true);
+    const [isExpanded, setIsExpanded] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 

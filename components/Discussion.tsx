@@ -93,43 +93,23 @@ export const Discussion: React.FC<Props> = ({ roomState, currentPlayer }) => {
         {/* Word Reminder Section - Only in Online Mode */}
         {roomState.gameMode === 'ONLINE' && (
           <div className="w-full bg-white/50 dark:bg-slate-800/50 rounded-2xl p-4 border border-white/40 dark:border-white/10 shadow-lg backdrop-blur-md">
-            <div className="flex items-center justify-between mb-2">
+            <div className="text-center mb-2">
               <span className="text-xs font-bold tracking-widest uppercase text-slate-600 dark:text-slate-400">
                 {currentPlayer.role === 'innocent' ? 'Your Secret Word' : 'Your Clue'}
               </span>
-              <button
-                onClick={() => setShowWord(!showWord)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-500 hover:bg-purple-600 text-white text-xs font-bold rounded-lg transition-colors shadow-md"
-              >
-                {showWord ? (
-                  <>
-                    <EyeOff size={14} />
-                    Hide
-                  </>
-                ) : (
-                  <>
-                    <Eye size={14} />
-                    Show
-                  </>
-                )}
-              </button>
             </div>
 
-            <div className="relative">
-              <div className={`text-2xl font-black text-slate-900 dark:text-white text-center py-2 transition-all ${showWord ? '' : 'blur-md select-none'}`}>
+            <div
+              onClick={() => setShowWord(!showWord)}
+              className="cursor-pointer select-none"
+            >
+              <div className={`text-2xl font-black text-slate-900 dark:text-white text-center py-2 transition-all ${showWord ? '' : 'blur-md'}`}>
                 {currentPlayer.role === 'innocent'
                   ? roomState.config.word
                   : (roomState.config.imposterClueEnabled && roomState.config.associationWord
                     ? roomState.config.associationWord
                     : '(No Clue)')}
               </div>
-              {!showWord && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400 bg-white/80 dark:bg-slate-700/80 px-3 py-1 rounded-full">
-                    Click Show to reveal
-                  </span>
-                </div>
-              )}
             </div>
           </div>
         )}
