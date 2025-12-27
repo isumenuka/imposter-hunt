@@ -2,6 +2,8 @@
 // This file contains the protected game content.
 // The data is Base64 encoded to prevent casual inspection.
 
+import { filterAvailableWords, saveWordToHistory } from '../utils/wordHistory';
+
 // Helper to decode data
 const decodeData = (encoded: string) => {
   try {
@@ -19,11 +21,8 @@ let cachedData: Record<string, Array<{ word: string, clueWords: string[] }>> | n
 
 // ============================================
 // IMPROVED RANDOMIZATION WITH HISTORY TRACKING
+// Now using localStorage-based persistence via wordHistory utility
 // ============================================
-
-// Store recently used words per category to prevent immediate repetition
-// Format: { "categoryName": ["word1", "word2", ...] }
-const recentlyUsedWords: Record<string, string[]> = {};
 
 // Store shuffle bags per category for better distribution
 // Format: { "categoryName": [indices...] }
@@ -93,7 +92,7 @@ export const getGameContent = (category: string): { word: string, associationWor
   }
 
   const categoryData = cachedData?.[category] || [];
-  
+
   if (categoryData.length === 0) {
     // Fallback if category empty or not found
     return { word: "Error", associationWord: "Error" };
@@ -107,44 +106,47 @@ export const getGameContent = (category: string): { word: string, associationWor
     let selectedSubCategory;
     let attempts = 0;
     const maxAttempts = 20;
-    
+
     while (attempts < maxAttempts) {
       const randomSubIndex = Math.floor(Math.random() * THE_BOYS_SUBCATEGORIES.length);
       const subCategory = THE_BOYS_SUBCATEGORIES[randomSubIndex];
-      
+
       // If this is the first selection or different from last, use it
       if (lastUsedSubCategory === null || subCategory.name !== lastUsedSubCategory) {
         selectedSubCategory = subCategory;
         lastUsedSubCategory = subCategory.name;
         break;
       }
-      
+
       attempts++;
     }
-    
+
     // Fallback: if we couldn't find a different one (shouldn't happen with 15 sub-categories)
     if (!selectedSubCategory) {
       const randomSubIndex = Math.floor(Math.random() * THE_BOYS_SUBCATEGORIES.length);
       selectedSubCategory = THE_BOYS_SUBCATEGORIES[randomSubIndex];
       lastUsedSubCategory = selectedSubCategory.name;
     }
-    
+
     // Get words from the selected sub-category
     const subCategoryWords = categoryData.slice(
       selectedSubCategory.startIndex,
       selectedSubCategory.endIndex + 1
     );
-    
+
     // Pick a random word from this sub-category
     const randomIndex = Math.floor(Math.random() * subCategoryWords.length);
     const selectedWord = subCategoryWords[randomIndex];
-    
+
     // Pick a random clue from the word's clueWords array
     const randomClueIndex = Math.floor(Math.random() * selectedWord.clueWords.length);
     const randomClue = selectedWord.clueWords[randomClueIndex];
-    
+
     console.log(`[The Boys] Selected sub-category: ${selectedSubCategory.name}, Word: ${selectedWord.word}`);
-    
+
+    // Save to persistent history for "The Boys" category too
+    saveWordToHistory(category, selectedWord.word, categoryData.length);
+
     return {
       word: selectedWord.word,
       associationWord: randomClue
@@ -153,67 +155,36 @@ export const getGameContent = (category: string): { word: string, associationWor
 
   // ============================================
   // NORMAL HANDLING FOR OTHER CATEGORIES
+  // Using persistent localStorage-based word history
   // ============================================
 
-  // Initialize recently used words list for this category if needed
-  if (!recentlyUsedWords[category]) {
-    recentlyUsedWords[category] = [];
+  // Filter out recently used words using localStorage-based history
+  const availableWords = filterAvailableWords(category, categoryData);
+
+  // Get shuffle bag for available words only
+  const shuffleBag = getShuffleBag(category, availableWords.length);
+
+  // Pop from shuffle bag
+  let wordIndex = shuffleBag.pop();
+
+  // If bag is empty, refill it
+  if (wordIndex === undefined) {
+    shuffleBags[category] = shuffleArray(
+      Array.from({ length: availableWords.length }, (_, i) => i)
+    );
+    wordIndex = shuffleBags[category].pop() || 0;
   }
 
-  const recentList = recentlyUsedWords[category];
-  const maxRecentSize = Math.max(3, Math.floor(categoryData.length * 0.6)); // Remember 60% of words
-  
-  // Get shuffle bag for this category
-  const shuffleBag = getShuffleBag(category, categoryData.length);
-  
-  let selectedWord;
-  let attempts = 0;
-  const maxAttempts = 50; // Prevent infinite loops
-  
-  while (attempts < maxAttempts) {
-    // Pop from shuffle bag
-    const wordIndex = shuffleBag.pop();
-    
-    // If bag is empty, refill it
-    if (wordIndex === undefined) {
-      shuffleBags[category] = shuffleArray(
-        Array.from({ length: categoryData.length }, (_, i) => i)
-      );
-      continue;
-    }
-    
-    const candidate = categoryData[wordIndex];
-    
-    // Check if this word was used recently
-    if (!recentList.includes(candidate.word)) {
-      selectedWord = candidate;
-      
-      // Add to recent words list
-      recentList.push(candidate.word);
-      
-      // Keep recent list size limited
-      if (recentList.length > maxRecentSize) {
-        recentList.shift(); // Remove oldest
-      }
-      
-      break;
-    }
-    
-    attempts++;
-  }
-  
-  // Fallback: if we couldn't find a non-recent word (very small category)
-  if (!selectedWord) {
-    // Clear recent list and pick randomly
-    recentlyUsedWords[category] = [];
-    const randomIndex = Math.floor(Math.random() * categoryData.length);
-    selectedWord = categoryData[randomIndex];
-  }
-  
+  // Select the word
+  const selectedWord = availableWords[wordIndex];
+
+  // Save to persistent history (localStorage)
+  saveWordToHistory(category, selectedWord.word, categoryData.length);
+
   // Pick a random clue from the word's clueWords array
   const randomClueIndex = Math.floor(Math.random() * selectedWord.clueWords.length);
   const randomClue = selectedWord.clueWords[randomClueIndex];
-  
+
   return {
     word: selectedWord.word,
     associationWord: randomClue
