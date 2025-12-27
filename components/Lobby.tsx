@@ -173,6 +173,7 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
     };
     try {
       await gameService.createGame(player);
+      setIsBusy(false); // Reset busy state on success
     } catch (e) {
       alert('Failed to create room. Please try again.');
       setIsBusy(false);
@@ -190,6 +191,7 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
     };
     try {
       await gameService.joinGame(inputCode.trim(), player);
+      setIsBusy(false); // Reset busy state on success
     } catch (e) {
       alert('Could not find room with that code.');
       setIsBusy(false);
