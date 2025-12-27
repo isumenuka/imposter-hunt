@@ -148,6 +148,39 @@ class GameService {
         console.log('Game reset to initial state');
     }
 
+    public leaveRoom() {
+        // Disconnect from current room and return to main menu
+        console.log('Leaving room...');
+
+        if (this.socket && this.socket.connected) {
+            this.socket.disconnect();
+            this.socket = null;
+        }
+
+        this.clearSavedState();
+
+        // Explicitly set state to fresh initial state
+        this.state = {
+            gameMode: 'ONLINE',
+            roomCode: '',
+            players: [],
+            phase: GamePhase.LOBBY,
+            config: {
+                category: 'Everything',
+                selectedCategories: [],
+                roundDuration: DEFAULT_ROUND_DURATION,
+                imposterCount: DEFAULT_IMPOSTER_COUNT,
+                imposterClueEnabled: DEFAULT_ASSOCIATION_WORD_ENABLED,
+            },
+            connectionStatus: 'DISCONNECTED',
+            activePlayerId: undefined,
+            isTurnHidden: false
+        };
+
+        this.notify();
+        console.log('Left room, returned to main menu with state:', this.state);
+    }
+
     // =========================================
     // SOCKET.IO CONNECTION
     // =========================================

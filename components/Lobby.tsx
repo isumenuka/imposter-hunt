@@ -97,7 +97,16 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
       <div className="flex flex-col h-full p-3 sm:p-4 space-y-3 sm:space-y-4">
         <div className="bg-slate-800/40 p-3 sm:p-4 rounded-2xl border border-slate-700/30 backdrop-blur-sm">
           <div className="flex justify-between items-center mb-2 sm:mb-3">
-            <h1 className="text-base sm:text-lg font-bold text-white">Player Lobby</h1>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                className="!p-1.5 text-[10px] sm:text-xs"
+                onClick={() => gameService.leaveRoom()}
+              >
+                ← Back
+              </Button>
+              <h1 className="text-base sm:text-lg font-bold text-white">Player Lobby</h1>
+            </div>
             <div className="bg-slate-700/50 px-2 py-1 rounded-full text-[10px] sm:text-xs font-semibold text-slate-300 border border-slate-600/50 flex items-center gap-1">
               <Users size={10} className="sm:w-3 sm:h-3" />
               {roomState.players.length}/12
