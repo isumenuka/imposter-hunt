@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ChatMessage, RoomState, Player } from '../types';
 import { gameService } from '../services/gameService';
 import { Send, MessageCircle, X, Minimize2 } from 'lucide-react';
+import { soundManager } from '../utils/sounds';
 
 interface Props {
     roomState: RoomState;
@@ -11,10 +12,33 @@ interface Props {
 export const ChatBox: React.FC<Props> = ({ roomState, currentPlayer }) => {
     const [message, setMessage] = useState('');
     const [isExpanded, setIsExpanded] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const prevMessageCountRef = useRef(messages.length);
 
     const messages = roomState.messages || [];
+
+    // Detect new messages and play notification sound
+    useEffect(() => {
+        const currentMessageCount = messages.length;
+        const previousCount = prevMessageCountRef.current;
+
+        // New message arrived
+        if (currentMessageCount > previousCount) {
+            const newMessagesCount = currentMessageCount - previousCount;
+
+            // If chat is minimized, increment unread count and play sound
+            if (!isExpanded) {
+                setUnreadCount(prev => prev + newMessagesCount);
+                // Play notification sound (subtle click)
+                soundManager.playClick();
+            }
+        }
+
+        // Update ref for next comparison
+        prevMessageCountRef.current = currentMessageCount;
+    }, [messages.length, isExpanded]);
 
     // Auto-scroll to bottom when new messages arrive
     useEffect(() => {
@@ -22,6 +46,12 @@ export const ChatBox: React.FC<Props> = ({ roomState, currentPlayer }) => {
             messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
         }
     }, [messages, isExpanded]);
+
+    // Clear unread count when chat is expanded
+    const handleExpand = () => {
+        setIsExpanded(true);
+        setUnreadCount(0);
+    };
 
     const handleSend = (e: React.FormEvent) => {
         e.preventDefault();
@@ -53,14 +83,26 @@ export const ChatBox: React.FC<Props> = ({ roomState, currentPlayer }) => {
             {/* Minimized View */}
             {!isExpanded && (
                 <button
-                    onClick={() => setIsExpanded(true)}
-                    className="px-3 py-2 sm:px-4 sm:py-3 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white rounded-full sm:rounded-2xl shadow-2xl flex items-center gap-1.5 sm:gap-2 transition-all hover:scale-105 active:scale-95 border border-purple-500/50"
+                    onClick={handleExpand}
+                    className="px-3 py-2 sm:px-4 sm:py-3 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white rounded-full sm:rounded-2xl shadow-2xl flex items-center gap-1.5 sm:gap-2 transition-all hover:scale-105 active:scale-95 border border-purple-500/50 relative"
                 >
                     <MessageCircle size={18} className="sm:w-5 sm:h-5" />
                     <span className="font-bold text-xs sm:text-sm">Chat</span>
                     {messages.length > 0 && (
                         <span className="ml-0.5 sm:ml-1 px-1.5 sm:px-2 py-0.5 bg-purple-400 rounded-full text-[10px] sm:text-xs font-black">
                             {messages.length}
+                        </span>
+                    )}
+
+                    {/* Unread notification badge with animated red dot */}
+                    {unreadCount > 0 && (
+                        <span className="absolute -top-1 -right-1 flex items-center justify-center">
+                            {/* Animated ping effect */}
+                            <span className="absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75 animate-ping"></span>
+                            {/* Solid red dot with count */}
+                            <span className="relative inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-black text-white bg-red-600 rounded-full border-2 border-white shadow-lg">
+                                {unreadCount > 9 ? '9+' : unreadCount}
+                            </span>
                         </span>
                     )}
                 </button>

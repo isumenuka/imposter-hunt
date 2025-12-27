@@ -30,7 +30,7 @@ export const Voting: React.FC<Props> = ({ roomState, currentPlayer }) => {
         <h2 className="text-xl sm:text-2xl font-bold text-white">Vote Locked</h2>
         <p className="text-slate-500 text-xs sm:text-sm font-normal">Waiting for others...</p>
 
-        <div className="w-full max-w-xs p-3 bg-white/30 dark:bg-slate-900/40 rounded-2xl border border-white/10 backdrop-blur-sm">
+        <div className="w-full max-w-xs p-3 bg-slate-900/60 rounded-2xl border border-slate-700/50 backdrop-blur-sm">
           <div className="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
             <div
               className="bg-blue-500 h-full transition-all duration-500 relative"
@@ -47,7 +47,7 @@ export const Voting: React.FC<Props> = ({ roomState, currentPlayer }) => {
             <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Not Voted</p>
             <div className="flex flex-wrap gap-2 justify-center">
               {notVoted.map(p => (
-                <div key={p.id} className="flex items-center gap-1 bg-white/20 dark:bg-slate-900/40 px-2 py-1 rounded-lg border border-white/10">
+                <div key={p.id} className="flex items-center gap-1 bg-slate-800/40 px-2 py-1 rounded-lg border border-slate-700/30">
                   <span className="text-base">{p.avatar}</span>
                   <span className="text-[10px] text-slate-400 font-medium">{p.name}</span>
                 </div>
@@ -63,9 +63,9 @@ export const Voting: React.FC<Props> = ({ roomState, currentPlayer }) => {
     <div className="flex flex-col h-full p-6 space-y-6">
       {/* Word Reminder Section - Only in Online Mode */}
       {roomState.gameMode === 'ONLINE' && (
-        <div className="w-full bg-white/50 dark:bg-slate-800/50 rounded-2xl p-4 border border-white/40 dark:border-white/10 shadow-lg backdrop-blur-md">
+        <div className="w-full bg-slate-800/60 rounded-2xl p-4 border border-slate-700/50 shadow-lg backdrop-blur-md">
           <div className="text-center mb-2">
-            <span className="text-xs font-bold tracking-widest uppercase text-slate-600 dark:text-slate-400">
+            <span className="text-xs font-bold tracking-widest uppercase text-slate-400">
               {currentPlayer.role === 'innocent' ? 'Your Secret Word' : 'Your Clue'}
             </span>
           </div>
@@ -74,7 +74,7 @@ export const Voting: React.FC<Props> = ({ roomState, currentPlayer }) => {
             onClick={() => setShowWord(!showWord)}
             className="cursor-pointer select-none"
           >
-            <div className={`text-2xl font-black text-slate-900 dark:text-white text-center py-2 transition-all ${showWord ? '' : 'blur-md'}`}>
+            <div className={`text-2xl font-black text-white text-center py-2 transition-all ${showWord ? '' : 'blur-md'}`}>
               {currentPlayer.role === 'innocent'
                 ? roomState.config.word
                 : (roomState.config.imposterClueEnabled && roomState.config.associationWord
@@ -101,12 +101,12 @@ export const Voting: React.FC<Props> = ({ roomState, currentPlayer }) => {
                     relative flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-xl border transition-all duration-200 group
                     ${selectedSuspect === p.id
                 ? 'bg-red-500/90 text-white border-red-400 shadow-lg shadow-red-500/20 scale-105 z-10'
-                : 'bg-white/30 dark:bg-slate-900/40 border-white/10 dark:border-white/5 hover:bg-white/40 dark:hover:bg-slate-800/60'}
+                : 'bg-slate-900/50 border-slate-700/50 hover:bg-slate-800/70'}
                     ${p.id === currentPlayer.id ? 'opacity-30 cursor-not-allowed grayscale' : ''}
                 `}
           >
             <div className="text-3xl sm:text-4xl mb-1 sm:mb-1.5 transition-transform group-hover:scale-105">{p.avatar}</div>
-            <div className={`font-semibold text-xs sm:text-sm ${selectedSuspect === p.id ? 'text-white' : 'text-slate-800 dark:text-white'}`}>{p.name}</div>
+            <div className={`font-semibold text-xs sm:text-sm ${selectedSuspect === p.id ? 'text-white' : 'text-white'}`}>{p.name}</div>
             {selectedSuspect === p.id && (
               <div className="absolute top-1.5 right-1.5 bg-white text-red-500 w-5 h-5 rounded-full flex items-center justify-center">
                 <CheckCircle2 size={14} strokeWidth={3} />

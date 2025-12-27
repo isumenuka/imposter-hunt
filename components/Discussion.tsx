@@ -76,9 +76,9 @@ export const Discussion: React.FC<Props> = ({ roomState, currentPlayer }) => {
         <h1 className="text-2xl sm:text-3xl font-bold mb-1 text-white">First to Speak</h1>
         <p className="text-slate-500 text-xs sm:text-sm mb-6 sm:mb-8 font-normal">Discussion starts with...</p>
 
-        <div className="bg-white/40 dark:bg-gradient-to-br dark:from-slate-900 dark:to-black p-4 sm:p-6 rounded-2xl border border-white/20 dark:border-white/5 shadow-xl flex flex-col items-center backdrop-blur-sm">
+        <div className="bg-slate-900/60 p-4 sm:p-6 rounded-2xl border border-slate-700/50 shadow-xl flex flex-col items-center backdrop-blur-sm">
           <div className="text-5xl sm:text-6xl mb-3 sm:mb-4 animate-bounce">{firstSpeaker?.avatar}</div>
-          <div className="bg-white/40 dark:bg-black/40 px-4 py-1.5 sm:px-6 sm:py-2 rounded-xl font-black text-xl sm:text-2xl text-white border border-white/10">
+          <div className="bg-slate-900/60 px-4 py-1.5 sm:px-6 sm:py-2 rounded-xl font-black text-xl sm:text-2xl text-white border border-slate-700/50">
             {firstSpeaker?.name}
           </div>
         </div>
@@ -92,9 +92,9 @@ export const Discussion: React.FC<Props> = ({ roomState, currentPlayer }) => {
       <div className="flex-1 flex flex-col items-center justify-start space-y-4 sm:space-y-6 md:space-y-8 py-4 max-w-2xl mx-auto w-full">
         {/* Word Reminder Section - Only in Online Mode */}
         {roomState.gameMode === 'ONLINE' && (
-          <div className="w-full bg-white/50 dark:bg-slate-800/50 rounded-2xl p-4 border border-white/40 dark:border-white/10 shadow-lg backdrop-blur-md">
+          <div className="w-full bg-slate-800/60 rounded-2xl p-4 border border-slate-700/50 shadow-lg backdrop-blur-md">
             <div className="text-center mb-2">
-              <span className="text-xs font-bold tracking-widest uppercase text-slate-600 dark:text-slate-400">
+              <span className="text-xs font-bold tracking-widest uppercase text-slate-400">
                 {currentPlayer.role === 'innocent' ? 'Your Secret Word' : 'Your Clue'}
               </span>
             </div>
@@ -103,7 +103,7 @@ export const Discussion: React.FC<Props> = ({ roomState, currentPlayer }) => {
               onClick={() => setShowWord(!showWord)}
               className="cursor-pointer select-none"
             >
-              <div className={`text-2xl font-black text-slate-900 dark:text-white text-center py-2 transition-all ${showWord ? '' : 'blur-md'}`}>
+              <div className={`text-2xl font-black text-white text-center py-2 transition-all ${showWord ? '' : 'blur-md'}`}>
                 {currentPlayer.role === 'innocent'
                   ? roomState.config.word
                   : (roomState.config.imposterClueEnabled && roomState.config.associationWord
@@ -120,7 +120,7 @@ export const Discussion: React.FC<Props> = ({ roomState, currentPlayer }) => {
           <p className="text-slate-500 text-xs sm:text-sm font-normal">Describe your word, find the liar</p>
         </div>
 
-        <div className="relative w-60 h-28 sm:w-64 sm:h-32 flex items-center justify-center bg-white/40 dark:bg-slate-900/50 rounded-2xl border border-white/20 dark:border-white/5 backdrop-blur-sm">
+        <div className="relative w-60 h-28 sm:w-64 sm:h-32 flex items-center justify-center bg-slate-900/60 rounded-2xl border border-slate-700/50 backdrop-blur-sm">
           <div className="text-5xl sm:text-6xl font-black tracking-tighter tabular-nums text-white font-mono">
             {formatTime(timeLeft)}
           </div>
@@ -134,7 +134,7 @@ export const Discussion: React.FC<Props> = ({ roomState, currentPlayer }) => {
           <div className="w-full space-y-2">
             <div className="flex items-center justify-center gap-2 mb-3">
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-500/50 to-transparent"></div>
-              <span className="text-xs font-bold tracking-widest uppercase text-purple-400 dark:text-purple-300">
+              <span className="text-xs font-bold tracking-widest uppercase text-purple-300">
                 Speaking Order
               </span>
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-500/50 to-transparent"></div>
@@ -153,8 +153,8 @@ export const Discussion: React.FC<Props> = ({ roomState, currentPlayer }) => {
                     className={`
                       flex items-center gap-3 p-2.5 rounded-xl border backdrop-blur-sm transition-all
                       ${isFirstSpeaker
-                        ? 'bg-purple-100/80 dark:bg-purple-900/40 border-purple-300 dark:border-purple-500/40 shadow-md'
-                        : 'bg-white/40 dark:bg-slate-800/40 border-white/40 dark:border-white/10'
+                        ? 'bg-purple-900/50 border-purple-500/50 shadow-md'
+                        : 'bg-slate-800/50 border-slate-700/40'
                       }
                     `}
                   >
@@ -162,7 +162,7 @@ export const Discussion: React.FC<Props> = ({ roomState, currentPlayer }) => {
                       flex items-center justify-center w-7 h-7 rounded-full font-black text-xs
                       ${isFirstSpeaker
                         ? 'bg-purple-500 text-white shadow-lg'
-                        : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                        : 'bg-slate-700 text-slate-300'
                       }
                     `}>
                       {index + 1}
@@ -171,11 +171,11 @@ export const Discussion: React.FC<Props> = ({ roomState, currentPlayer }) => {
                     <span className="text-lg sm:text-xl">{player.avatar}</span>
 
                     <div className="flex-1">
-                      <span className="font-bold text-sm text-slate-800 dark:text-white">
+                      <span className="font-bold text-sm text-white">
                         {player.name}
                       </span>
                       {isFirstSpeaker && (
-                        <div className="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">
+                        <div className="text-[10px] font-bold text-purple-400 uppercase tracking-wider">
                           First Speaker
                         </div>
                       )}
@@ -217,15 +217,15 @@ export const Discussion: React.FC<Props> = ({ roomState, currentPlayer }) => {
       {/* Confirmation Dialog */}
       {showReRandomizeConfirm && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in">
-          <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-white/10 animate-in zoom-in duration-200">
+          <div className="bg-slate-900 rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-700/50 animate-in zoom-in duration-200">
             <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/40 rounded-full flex items-center justify-center mx-auto mb-4">
-                <RefreshCw size={32} className="text-purple-600 dark:text-purple-400" />
+              <div className="w-16 h-16 bg-purple-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <RefreshCw size={32} className="text-purple-400" />
               </div>
-              <h3 className="text-xl font-black text-slate-800 dark:text-white mb-2">
+              <h3 className="text-xl font-black text-white mb-2">
                 Re-Randomize Secret Word?
               </h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
+              <p className="text-sm text-slate-400">
                 This will assign a new secret word to all players while keeping their roles intact. Use this if players accidentally got the same word.
               </p>
             </div>

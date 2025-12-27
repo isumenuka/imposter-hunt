@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shuffle Bag Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+
+        .container {
+            background: #1e293b;
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            color: #8b5cf6;
+            margin-top: 0;
+        }
+
+        h2 {
+            color: #a78bfa;
+            margin-top: 30px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #8b5cf6, #6366f1);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 5px;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        button.secondary {
+            background: #334155;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: #334155;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #8b5cf6;
+            margin-top: 5px;
+        }
+
+        .word-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 15px 0;
+        }
+
+        .word-badge {
+            background: #475569;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .word-badge.duplicate {
+            background: #991b1b;
+            border-color: #dc2626;
+        }
+
+        .log {
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 15px 0;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .log-entry {
+            margin: 4px 0;
+            padding: 2px 0;
+        }
+
+        .success {
+            color: #22c55e;
+        }
+
+        .error {
+            color: #ef4444;
+        }
+
+        .info {
+            color: #60a5fa;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🎲 Shuffle Bag Word Selection Test</h1>
+        <p>Test the new shuffle bag implementation to verify all words appear before any repeats.</p>
+
+        <div>
+            <button onclick="testSingleWord()">Pick One Word</button>
+            <button onclick="testFullCycle()">Test Full Cycle (29 words)</button>
+            <button onclick="test100Games()">Test 100 Games</button>
+            <button class="secondary" onclick="resetBag()">Reset Shuffle Bag</button>
+            <button class="secondary" onclick="clearAll()">Clear All Data</button>
+        </div>
+
+        <h2>Statistics</h2>
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">Games Played</div>
+                <div class="stat-value" id="gamesPlayed">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Unique Words</div>
+                <div class="stat-value" id="uniqueWords">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Duplicates</div>
+                <div class="stat-value" id="duplicates">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Bag Remaining</div>
+                <div class="stat-value" id="bagRemaining">29</div>
+            </div>
+        </div>
+
+        <h2>Recent Words (Last 20)</h2>
+        <div class="word-list" id="wordList"></div>
+
+        <h2>Shuffle Bag Status</h2>
+        <div class="log" id="bagStatus"></div>
+
+        <h2>Test Log</h2>
+        <div class="log" id="testLog"></div>
+    </div>
+
+    <script type="module">
+        import { shuffleBagManager } from './utils/shuffleBag.ts';
+        import { getGameContent } from './data/gameContent.ts';
+
+        let gamesPlayed = 0;
+        let wordsSeen = new Set();
+        let recentWords = [];
+        let duplicateCount = 0;
+
+        window.testSingleWord = function () {
+            const result = getGameContent('Foods');
+            gamesPlayed++;
+
+            const isDuplicate = wordsSeen.has(result.word);
+            if (isDuplicate) {
+                duplicateCount++;
+            }
+
+            wordsSeen.add(result.word);
+            recentWords.unshift({ word: result.word, isDuplicate });
+            if (recentWords.length > 20) recentWords.pop();
+
+            updateUI();
+            log(`Picked: ${result.word} (Clue: ${result.associationWord})`, isDuplicate ? 'error' : 'success');
+        };
+
+        window.testFullCycle = function () {
+            log('Starting full cycle test (29 words)...', 'info');
+            const words = [];
+
+            for (let i = 0; i < 29; i++) {
+                const result = getGameContent('Foods');
+                words.push(result.word);
+                gamesPlayed++;
+                wordsSeen.add(result.word);
+            }
+
+            recentWords = words.slice(0, 20).map(w => ({ word: w, isDuplicate: false }));
+
+            const unique = new Set(words);
+            if (unique.size === 29) {
+                log(`✅ SUCCESS! All 29 unique words picked in one cycle`, 'success');
+            } else {
+                log(`❌ FAIL! Only ${unique.size}/29 unique words`, 'error');
+                duplicateCount += (29 - unique.size);
+            }
+
+            updateUI();
+        };
+
+        window.test100Games = function () {
+            log('Starting 100-game test...', 'info');
+            const startSize = wordsSeen.size;
+
+            for (let i = 0; i < 100; i++) {
+                const result = getGameContent('Foods');
+
+                if (wordsSeen.has(result.word) && wordsSeen.size < 29) {
+                    log(`⚠️ Duplicate found before seeing all words: ${result.word}`, 'error');
+                    duplicateCount++;
+                }
+
+                wordsSeen.add(result.word);
+                gamesPlayed++;
+
+                if (i < 20) {
+                    recentWords.unshift({ word: result.word, isDuplicate: false });
+                }
+            }
+
+            if (recentWords.length > 20) {
+                recentWords = recentWords.slice(0, 20);
+            }
+
+            log(`✅ Completed 100 games. Words seen: ${wordsSeen.size}/29`, 'success');
+            log(`📊 Games per cycle: ${(100 / Math.floor(100 / 29)).toFixed(1)}`, 'info');
+
+            updateUI();
+        };
+
+        window.resetBag = function () {
+            shuffleBagManager.resetBag('Foods');
+            log('🔄 Shuffle bag reset for "Foods" category', 'info');
+            updateUI();
+        };
+
+        window.clearAll = function () {
+            shuffleBagManager.clearAll();
+            gamesPlayed = 0;
+            wordsSeen.clear();
+            recentWords = [];
+            duplicateCount = 0;
+            log('🧹 All data cleared', 'info');
+            updateUI();
+        };
+
+        function updateUI() {
+            // Update statistics
+            document.getElementById('gamesPlayed').textContent = gamesPlayed;
+            document.getElementById('uniqueWords').textContent = wordsSeen.size;
+            document.getElementById('duplicates').textContent = duplicateCount;
+
+            // Update bag status
+            const status = shuffleBagManager.getBagStatus('Foods', 29);
+            document.getElementById('bagRemaining').textContent = status.remaining;
+
+            // Update bag status detail
+            const bagStatusEl = document.getElementById('bagStatus');
+            bagStatusEl.innerHTML = `
+        <div>Category: Foods</div>
+        <div>Total Words: ${status.total}</div>
+        <div>Position: ${status.position}/${status.total}</div>
+        <div>Remaining: ${status.remaining}</div>
+        <div>Status: ${status.isNew ? 'New bag (will be created on next pick)' : 'Active'}</div>
+      `;
+
+            // Update word list
+            const wordListEl = document.getElementById('wordList');
+            wordListEl.innerHTML = recentWords.map(({ word, isDuplicate }) =>
+                `<div class="word-badge ${isDuplicate ? 'duplicate' : ''}">${word}</div>`
+            ).join('');
+        }
+
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('testLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${timestamp}] ${message}`;
+            logEl.insertBefore(entry, logEl.firstChild);
+
+            // Keep only last 50 entries
+            while (logEl.children.length > 50) {
+                logEl.removeChild(logEl.lastChild);
+            }
+        }
+
+        // Initialize
+        updateUI();
+        log('🎮 Shuffle Bag Test Page Ready', 'success');
+    </script>
+</body>
+
+</html>

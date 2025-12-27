@@ -44,7 +44,7 @@ const App: React.FC = () => {
 
 
   if (!roomState) return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
+    <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white">
       <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
     </div>
   );
@@ -163,12 +163,13 @@ const App: React.FC = () => {
 
   return (
     <div className="dark">
-      <div className="relative min-h-screen w-full bg-black overflow-hidden transition-colors duration-300 font-sans text-white">
+      <div className="relative min-h-screen w-full bg-slate-900 overflow-hidden transition-colors duration-300 font-sans text-white">
 
-        {/* === SUBTLE BACKGROUND GRADIENT === */}
+        {/* === ANIMATED STAR BACKGROUND === */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 -left-4 w-80 h-80 bg-purple-900/20 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-blob"></div>
-          <div className="absolute -bottom-8 right-0 w-80 h-80 bg-blue-900/20 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+          {[...Array(12)].map((_, i) => (
+            <div key={i} className="star"></div>
+          ))}
         </div>
 
         {/* === MAIN CONTENT CONTAINER === */}

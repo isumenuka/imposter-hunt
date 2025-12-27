@@ -15,7 +15,7 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
   const [inputCode, setInputCode] = useState('');
   const [isBusy, setIsBusy] = useState(false);
 
-  const inputClass = "w-full bg-white/50 dark:bg-black/40 p-2.5 sm:p-3 rounded-xl text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium text-sm border border-white/20 dark:border-white/5 transition-all";
+  const inputClass = "w-full bg-slate-800/60 p-2.5 sm:p-3 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium text-sm border border-slate-700/50 transition-all";
 
   // === OFFLINE MODE LOBBY ===
   if (roomState.gameMode === 'OFFLINE') {
@@ -45,9 +45,9 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
             </div>
           )}
           {roomState.players.map((p, i) => (
-            <div key={p.id} className="flex items-center bg-white/30 dark:bg-black/30 p-1.5 sm:p-2 rounded-lg animate-in slide-in-from-left-4 backdrop-blur-sm border border-white/10 dark:border-white/5" style={{ animationDelay: `${i * 50}ms` }}>
+            <div key={p.id} className="flex items-center bg-slate-800/40 p-1.5 sm:p-2 rounded-lg animate-in slide-in-from-left-4 backdrop-blur-sm border border-slate-700/30" style={{ animationDelay: `${i * 50}ms` }}>
               <span className="text-base sm:text-lg mr-1.5 sm:mr-2">{p.avatar}</span>
-              <span className="font-semibold text-xs sm:text-sm text-slate-800 dark:text-white flex-1">{p.name}</span>
+              <span className="font-semibold text-xs sm:text-sm text-white flex-1">{p.name}</span>
               <button
                 className="text-red-500 opacity-40 hover:opacity-100 px-1.5 transition-opacity"
                 onClick={() => gameService.removeOfflinePlayer(p.id)}
@@ -59,7 +59,7 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
         </div>
 
         {/* Add Player Form */}
-        <div className="bg-white/40 dark:bg-slate-900/50 p-2.5 sm:p-3 rounded-xl border border-white/20 dark:border-white/5 space-y-2 backdrop-blur-sm">
+        <div className="bg-slate-800/40 p-2.5 sm:p-3 rounded-xl border border-slate-700/30 space-y-2 backdrop-blur-sm">
           <div className="flex gap-1.5 sm:gap-2">
             <input
               type="text"
@@ -95,17 +95,17 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
 
     return (
       <div className="flex flex-col h-full p-3 sm:p-4 space-y-3 sm:space-y-4">
-        <div className="bg-white/40 dark:bg-slate-900/50 p-3 sm:p-4 rounded-2xl border border-white/20 dark:border-white/5 backdrop-blur-sm">
+        <div className="bg-slate-800/40 p-3 sm:p-4 rounded-2xl border border-slate-700/30 backdrop-blur-sm">
           <div className="flex justify-between items-center mb-2 sm:mb-3">
-            <h1 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white">Lobby</h1>
-            <div className="bg-blue-900/20 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-semibold text-blue-400 border border-blue-800/30 flex items-center gap-0.5 sm:gap-1">
+            <h1 className="text-base sm:text-lg font-bold text-white">Player Lobby</h1>
+            <div className="bg-slate-700/50 px-2 py-1 rounded-full text-[10px] sm:text-xs font-semibold text-slate-300 border border-slate-600/50 flex items-center gap-1">
               <Users size={10} className="sm:w-3 sm:h-3" />
               {roomState.players.length}/12
             </div>
           </div>
-          <div className="text-center p-2.5 sm:p-3 bg-white/40 dark:bg-black/40 rounded-xl border border-white/10 dark:border-white/5 mb-2 sm:mb-3 relative overflow-hidden">
-            <p className="text-slate-500 dark:text-slate-500 text-[9px] uppercase tracking-wider mb-0.5 font-semibold">Room Code</p>
-            <p className="text-xl sm:text-2xl font-mono font-black text-blue-500 dark:text-blue-400 tracking-widest select-all relative z-10">{roomState.roomCode}</p>
+          <div className="text-center p-2.5 sm:p-3 bg-slate-800/60 rounded-xl border border-slate-700/50 mb-2 sm:mb-3 relative overflow-hidden">
+            <p className="text-slate-400 text-[9px] uppercase tracking-wider mb-0.5 font-semibold">Room Code</p>
+            <p className="text-xl sm:text-2xl font-mono font-black text-purple-400 tracking-widest select-all relative z-10">{roomState.roomCode}</p>
           </div>
 
           <div className="w-full bg-slate-700 h-1.5 rounded-full overflow-hidden mb-1.5">
@@ -114,18 +114,18 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
               style={{ width: `${Math.min((roomState.players.length / 3) * 100, 100)}%` }}
             />
           </div>
-          <p className={`text-[10px] font-semibold text-center ${canStart ? 'text-green-500' : 'text-slate-500'}`}>
+          <p className={`text-[10px] font-semibold text-center ${canStart ? 'text-green-400' : 'text-red-400'}`}>
             {canStart ? 'Ready!' : `${3 - roomState.players.length} more needed`}
           </p>
         </div>
 
         <div className="flex-1 overflow-y-auto space-y-3 p-1">
           {roomState.players.map((p) => (
-            <div key={p.id} className="flex items-center bg-white/40 dark:bg-slate-800/40 p-2 sm:p-3 rounded-2xl border border-white/40 dark:border-white/5 shadow-sm">
+            <div key={p.id} className="flex items-center bg-slate-800/40 p-2 sm:p-3 rounded-2xl border border-slate-700/30 shadow-sm">
               <span className="text-2xl sm:text-3xl mr-3 sm:mr-4 filter drop-shadow-sm">{p.avatar}</span>
               <div className="flex-1">
-                <p className="font-bold text-sm sm:text-base text-slate-800 dark:text-white">{p.name} {p.id === currentPlayer.id && '(You)'}</p>
-                {p.isHost && <p className="text-[9px] sm:text-[10px] text-yellow-600 dark:text-yellow-400 font-bold bg-yellow-100 dark:bg-yellow-900/30 inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 rounded-full mt-1"><Shield size={9} className="sm:w-[10px] sm:h-[10px]" />HOST</p>}
+                <p className="font-bold text-sm sm:text-base text-white">{p.name} {p.id === currentPlayer.id && '(You)'}</p>
+                {p.isHost && <p className="text-[9px] sm:text-[10px] text-yellow-400 font-bold bg-yellow-900/30 inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 rounded-full mt-1"><Shield size={9} className="sm:w-[10px] sm:h-[10px]" />HOST</p>}
               </div>
             </div>
           ))}
@@ -140,7 +140,7 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
             Continue to Settings &rarr;
           </Button>
         ) : (
-          <div className="text-center text-slate-500 dark:text-slate-400 animate-pulse pb-4 text-sm font-medium">
+          <div className="text-center text-slate-400 animate-pulse pb-4 text-sm font-medium">
             Waiting for host to start...
           </div>
         )}
@@ -156,7 +156,7 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
           <div className="w-16 h-16 border-4 border-blue-200 dark:border-slate-700 rounded-full"></div>
           <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
         </div>
-        <p className="text-slate-500 dark:text-slate-400 font-bold animate-pulse">Connecting...</p>
+        <p className="text-slate-400 font-bold animate-pulse">Connecting...</p>
       </div>
     );
   }
@@ -221,7 +221,7 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
             className={inputClass}
           />
 
-          <div className="h-px bg-slate-300 dark:bg-slate-700/50 my-6 w-1/2 mx-auto"></div>
+          <div className="h-px bg-slate-700/50 my-6 w-1/2 mx-auto"></div>
 
           {mode === 'MAIN' ? (
             <div className="space-y-3 pt-2">
@@ -247,7 +247,7 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
                   value={inputCode}
                   onChange={(e) => setInputCode(e.target.value.toUpperCase())}
                   maxLength={4}
-                  className="w-full bg-white/70 dark:bg-black/40 p-4 rounded-2xl text-center font-mono placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500 font-black text-3xl tracking-[0.5em] uppercase border border-white/40 dark:border-white/10 text-slate-900 dark:text-white"
+                  className="w-full bg-slate-800/60 p-4 rounded-2xl text-center font-mono placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 font-black text-3xl tracking-[0.5em] uppercase border border-slate-700/50 text-white"
                 />
               </div>
               <div className="flex gap-3">

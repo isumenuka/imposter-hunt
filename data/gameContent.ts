@@ -3,6 +3,7 @@
 // The data is Base64 encoded to prevent casual inspection.
 
 import { filterAvailableWords, saveWordToHistory } from '../utils/wordHistory';
+import { shuffleBagManager } from '../utils/shuffleBag';
 
 // Helper to decode data
 const decodeData = (encoded: string) => {
@@ -24,9 +25,8 @@ let cachedData: Record<string, Array<{ word: string, clueWords: string[] }>> | n
 // Now using localStorage-based persistence via wordHistory utility
 // ============================================
 
-// Store shuffle bags per category for better distribution
-// Format: { "categoryName": [indices...] }
-const shuffleBags: Record<string, number[]> = {};
+// Shuffle bags are now managed by shuffleBagManager utility
+// with localStorage persistence for consistency across page refreshes
 
 // ============================================
 // SUB-CATEGORY MANAGEMENT FOR "THE BOYS"
@@ -55,31 +55,7 @@ const THE_BOYS_SUBCATEGORIES = [
 // Track the last used sub-category for "The Boys"
 let lastUsedSubCategory: string | null = null;
 
-/**
- * Fisher-Yates shuffle algorithm for array shuffling
- * Ensures uniform random distribution
- */
-const shuffleArray = <T>(array: T[]): T[] => {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-};
-
-/**
- * Get a shuffled bag of indices for a category
- * This ensures every word gets seen before repetition
- */
-const getShuffleBag = (category: string, totalWords: number): number[] => {
-  if (!shuffleBags[category] || shuffleBags[category].length === 0) {
-    // Create a new shuffled bag with all word indices
-    const indices = Array.from({ length: totalWords }, (_, i) => i);
-    shuffleBags[category] = shuffleArray(indices);
-  }
-  return shuffleBags[category];
-};
+// Fisher-Yates shuffle and shuffle bag management moved to shuffleBagManager utility
 
 /**
  * Improved word selection with history tracking and shuffle bag algorithm
@@ -155,30 +131,17 @@ export const getGameContent = (category: string): { word: string, associationWor
 
   // ============================================
   // NORMAL HANDLING FOR OTHER CATEGORIES
-  // Using persistent localStorage-based word history
+  // Using shuffle bag manager for fair word distribution
   // ============================================
 
-  // Filter out recently used words using localStorage-based history
-  const availableWords = filterAvailableWords(category, categoryData);
+  // Use shuffle bag manager to get next word index
+  // This ensures all words are seen exactly once before any repeats
+  const wordIndex = shuffleBagManager.getNextWordIndex(category, categoryData.length);
 
-  // Get shuffle bag for available words only
-  const shuffleBag = getShuffleBag(category, availableWords.length);
+  // Select the word at the shuffled index
+  const selectedWord = categoryData[wordIndex];
 
-  // Pop from shuffle bag
-  let wordIndex = shuffleBag.pop();
-
-  // If bag is empty, refill it
-  if (wordIndex === undefined) {
-    shuffleBags[category] = shuffleArray(
-      Array.from({ length: availableWords.length }, (_, i) => i)
-    );
-    wordIndex = shuffleBags[category].pop() || 0;
-  }
-
-  // Select the word
-  const selectedWord = availableWords[wordIndex];
-
-  // Save to persistent history (localStorage)
+  // Save to persistent history (for tracking/debugging)
   saveWordToHistory(category, selectedWord.word, categoryData.length);
 
   // Pick a random clue from the word's clueWords array

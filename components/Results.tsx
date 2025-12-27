@@ -77,7 +77,7 @@ export const Results: React.FC<Props> = ({ roomState }) => {
 
             {/* Stats Grid */}
             <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
-                <div className="bg-white/30 dark:bg-slate-900/40 p-3 sm:p-4 rounded-xl border border-white/20 dark:border-white/5 backdrop-blur-sm">
+                <div className="bg-slate-900/60 p-3 sm:p-4 rounded-xl border border-slate-700/50 backdrop-blur-sm">
                     <h3 className="text-slate-600 text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider mb-2 sm:mb-3 text-center">Voted Out</h3>
                     {votedOutPlayer ? (
                         <div className="flex flex-col items-center">
@@ -93,7 +93,7 @@ export const Results: React.FC<Props> = ({ roomState }) => {
                 </div>
 
                 {/* Vote Breakdown Section */}
-                <div className="bg-white/30 dark:bg-slate-900/40 p-3 sm:p-4 rounded-xl border border-white/20 dark:border-white/5 backdrop-blur-sm">
+                <div className="bg-slate-900/60 p-3 sm:p-4 rounded-xl border border-slate-700/50 backdrop-blur-sm">
                     <h3 className="text-slate-600 text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider mb-2 sm:mb-3 text-center">Vote Breakdown</h3>
 
                     {Object.keys(votes).length > 0 ? (
@@ -134,11 +134,11 @@ export const Results: React.FC<Props> = ({ roomState }) => {
                     )}
                 </div>
 
-                <div className="bg-white/30 dark:bg-slate-900/40 p-3 sm:p-4 rounded-xl border border-white/20 dark:border-white/5 backdrop-blur-sm">
+                <div className="bg-slate-900/60 p-3 sm:p-4 rounded-xl border border-slate-700/50 backdrop-blur-sm">
                     <h3 className="text-slate-600 text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider mb-2 sm:mb-3 text-center">The Imposters</h3>
                     <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
                         {imposters.map(imp => (
-                            <div key={imp.id} className="flex flex-col items-center bg-white/40 dark:bg-black/40 p-2 sm:p-2.5 rounded-lg border border-red-900/30">
+                            <div key={imp.id} className="flex flex-col items-center bg-slate-800/50 p-2 sm:p-2.5 rounded-lg border border-red-900/30">
                                 <span className="text-2xl sm:text-3xl mb-0.5 sm:mb-1">{imp.avatar}</span>
                                 <span className="font-semibold text-white text-[10px] sm:text-xs">{imp.name}</span>
                             </div>
@@ -146,13 +146,13 @@ export const Results: React.FC<Props> = ({ roomState }) => {
                     </div>
                 </div>
 
-                <div className="bg-white/40 dark:bg-slate-900/60 p-3 sm:p-4 rounded-xl border border-white/20 dark:border-white/5 text-center">
+                <div className="bg-slate-900/70 p-3 sm:p-4 rounded-xl border border-slate-700/50 text-center">
                     <h3 className="text-slate-600 text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider mb-1 sm:mb-1.5">Secret Word</h3>
                     <p className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500">{roomState.config.word}</p>
                 </div>
 
                 {roomState.config.imposterClueEnabled && roomState.config.associationWord && (
-                    <div className="bg-white/40 dark:bg-slate-900/60 p-3 sm:p-4 rounded-xl border border-white/20 dark:border-white/5 text-center">
+                    <div className="bg-slate-900/70 p-3 sm:p-4 rounded-xl border border-slate-700/50 text-center">
                         <h3 className="text-slate-600 text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider mb-1 sm:mb-1.5">Imposter Clue</h3>
                         <p className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-pink-500">{roomState.config.associationWord}</p>
                     </div>
@@ -164,7 +164,7 @@ export const Results: React.FC<Props> = ({ roomState }) => {
                     ↺ Play Again
                 </Button>
             ) : (
-                <div className="text-center text-slate-500 dark:text-slate-400 animate-pulse py-4 text-sm font-medium">
+                <div className="text-center text-slate-400 animate-pulse py-4 text-sm font-medium">
                     Waiting for host to start new game...
                 </div>
             )}
