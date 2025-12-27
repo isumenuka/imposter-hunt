@@ -1,35 +1,22 @@
 /**
- * Shuffle Bag Manager - Enhanced Edition
+ * Shuffle Bag Manager
  * 
- * Implements strict anti-repetition rules for word selection:
+ * Implements the "shuffle bag" pattern for word selection:
  * 1. Shuffle all word indices using Fisher-Yates algorithm
- * 2. Store shuffled indices in localStorage with global history
+ * 2. Store shuffled indices in localStorage
  * 3. Return words sequentially from shuffled list
- * 4. When bag is empty, create new shuffle with anti-pattern validation
- * 5. Ensure minimum 50% coverage before allowing repeats
- * 6. Track global word history to prevent similar words appearing close together
+ * 4. When bag is empty, create new shuffle
  * 
- * This ensures maximum word variety and prevents any similar words
- * from appearing in close proximity.
+ * This ensures every word is seen exactly once before any repeats,
+ * providing fair distribution and preventing immediate duplicates.
  */
 
 const STORAGE_KEY = 'imposter-hunt-shuffle-bags';
-const GLOBAL_HISTORY_KEY = 'imposter-hunt-global-history';
-const MIN_COVERAGE_PERCENT = 0.5; // Must see at least 50% of words before any repeat
-const MIN_GAP_BETWEEN_REUSE = 10; // Minimum number of words between reusing same word
 
 interface ShuffleBagState {
     indices: number[];      // Shuffled word indices
     position: number;       // Current position (next word to grab)
     lastShuffled: number;   // Timestamp of last shuffle
-    usedWords: Set<number>; // Words used in current cycle
-}
-
-interface GlobalHistory {
-    [category: string]: {
-        recentWords: number[];  // Recently used word indices (sliding window)
-        totalSeen: Set<number>; // All words seen in current session
-    };
 }
 
 interface ShuffleBagsStore {
@@ -57,17 +44,7 @@ class ShuffleBagManager {
         try {
             const stored = localStorage.getItem(STORAGE_KEY);
             if (stored) {
-                const parsed = JSON.parse(stored);
-                // Convert arrays back to Sets if they exist
-                for (const key in parsed) {
-                    if (parsed[key].usedWords && Array.isArray(parsed[key].usedWords)) {
-                        parsed[key].usedWords = new Set(parsed[key].usedWords);
-                    } else if (!parsed[key].usedWords) {
-                        // Add empty Set for backward compatibility
-                        parsed[key].usedWords = new Set();
-                    }
-                }
-                return parsed;
+                return JSON.parse(stored);
             }
         } catch (error) {
             console.error('Failed to load shuffle bags:', error);
@@ -81,92 +58,28 @@ class ShuffleBagManager {
      */
     private saveBags(bags: ShuffleBagsStore): void {
         try {
-            // Convert Sets to arrays for JSON serialization
-            const serializable: any = {};
-            for (const key in bags) {
-                serializable[key] = {
-                    indices: bags[key].indices,
-                    position: bags[key].position,
-                    lastShuffled: bags[key].lastShuffled,
-                    usedWords: Array.from(bags[key].usedWords)
-                };
-            }
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(serializable));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(bags));
         } catch (error) {
             console.error('Failed to save shuffle bags:', error);
         }
     }
 
     /**
-     * Load global history from localStorage
+     * Create a new shuffled bag for a category
      */
-    private loadGlobalHistory(): GlobalHistory {
-        try {
-            const stored = localStorage.getItem(GLOBAL_HISTORY_KEY);
-            if (stored) {
-                const parsed = JSON.parse(stored);
-                // Convert totalSeen back to Set
-                for (const key in parsed) {
-                    if (parsed[key].totalSeen) {
-                        parsed[key].totalSeen = new Set(parsed[key].totalSeen);
-                    }
-                }
-                return parsed;
-            }
-        } catch (error) {
-            console.error('Failed to load global history:', error);
-            localStorage.removeItem(GLOBAL_HISTORY_KEY);
-        }
-        return {};
-    }
-
-    /**
-     * Save global history to localStorage
-     */
-    private saveGlobalHistory(history: GlobalHistory): void {
-        try {
-            // Convert Sets to arrays for JSON serialization
-            const serializable: any = {};
-            for (const key in history) {
-                serializable[key] = {
-                    recentWords: history[key].recentWords,
-                    totalSeen: Array.from(history[key].totalSeen)
-                };
-            }
-            localStorage.setItem(GLOBAL_HISTORY_KEY, JSON.stringify(serializable));
-        } catch (error) {
-            console.error('Failed to save global history:', error);
-        }
-    }
-
-    /**
-     * Create a new shuffled bag for a category with anti-pattern validation
-     * Ensures minimum coverage before allowing word repeats
-     */
-    private createNewBag(totalWords: number, category: string, recentWords: number[]): ShuffleBagState {
+    private createNewBag(totalWords: number): ShuffleBagState {
         const indices = Array.from({ length: totalWords }, (_, i) => i);
-        let shuffledIndices = shuffleArray(indices);
-
-        // Validate: first word should not be in recent history (last MIN_GAP_BETWEEN_REUSE words)
-        const recentSet = new Set(recentWords.slice(-MIN_GAP_BETWEEN_REUSE));
-        let attempts = 0;
-        while (recentSet.has(shuffledIndices[0]) && attempts < 50) {
-            shuffledIndices = shuffleArray(indices);
-            attempts++;
-        }
-
-        console.log(`🎲 Created new shuffle for "${category}" - First word index: ${shuffledIndices[0]} (validated against ${recentSet.size} recent words)`);
+        const shuffledIndices = shuffleArray(indices);
 
         return {
             indices: shuffledIndices,
             position: 0,
-            lastShuffled: Date.now(),
-            usedWords: new Set()
+            lastShuffled: Date.now()
         };
     }
 
     /**
-     * Get the next word index from the shuffle bag with enhanced anti-repetition
+     * Get the next word index from the shuffle bag
      * 
      * @param category - The category name
      * @param totalWords - Total number of words in the category
@@ -174,30 +87,12 @@ class ShuffleBagManager {
      */
     public getNextWordIndex(category: string, totalWords: number): number {
         const bags = this.loadBags();
-        const globalHistory = this.loadGlobalHistory();
-
-        // Initialize global history for category if not exists
-        if (!globalHistory[category]) {
-            globalHistory[category] = {
-                recentWords: [],
-                totalSeen: new Set()
-            };
-        }
-
         let bag = bags[category];
-        const history = globalHistory[category];
 
         // Create new bag if doesn't exist or is exhausted
         if (!bag || bag.position >= bag.indices.length || bag.indices.length !== totalWords) {
             console.log(`🔄 Creating new shuffle bag for "${category}" (${totalWords} words)`);
-
-            // Check minimum coverage rule
-            const coveragePercent = history.totalSeen.size / totalWords;
-            if (coveragePercent < MIN_COVERAGE_PERCENT && history.totalSeen.size > 0) {
-                console.warn(`⚠️ Only ${(coveragePercent * 100).toFixed(1)}% coverage for "${category}" - enforcing minimum ${(MIN_COVERAGE_PERCENT * 100)}% rule`);
-            }
-
-            bag = this.createNewBag(totalWords, category, history.recentWords);
+            bag = this.createNewBag(totalWords);
             bags[category] = bag;
             this.saveBags(bags);
         }
@@ -205,32 +100,13 @@ class ShuffleBagManager {
         // Get the next index
         const wordIndex = bag.indices[bag.position];
 
-        // Validate against recent history (extra safety check)
-        const recentSet = new Set(history.recentWords.slice(-MIN_GAP_BETWEEN_REUSE));
-        if (recentSet.has(wordIndex)) {
-            console.warn(`⚠️ Word index ${wordIndex} appears in recent history - this should be rare!`);
-        }
-
-        // Record word in global history
-        history.recentWords.push(wordIndex);
-        // Keep recent history to 2x MIN_GAP size for efficiency
-        if (history.recentWords.length > MIN_GAP_BETWEEN_REUSE * 2) {
-            history.recentWords = history.recentWords.slice(-MIN_GAP_BETWEEN_REUSE * 2);
-        }
-        history.totalSeen.add(wordIndex);
-
-        // Mark word as used in current bag
-        bag.usedWords.add(wordIndex);
-
         // Increment position for next time
         bag.position++;
         bags[category] = bag;
         this.saveBags(bags);
-        this.saveGlobalHistory(globalHistory);
 
         const remaining = bag.indices.length - bag.position;
-        const coverage = (history.totalSeen.size / totalWords * 100).toFixed(1);
-        console.log(`📖 "${category}": index ${wordIndex}, ${remaining} remaining in bag, ${coverage}% total coverage`);
+        console.log(`📖 Shuffle bag "${category}": picked index ${wordIndex}, ${remaining} remaining`);
 
         return wordIndex;
     }
@@ -277,13 +153,12 @@ class ShuffleBagManager {
     }
 
     /**
-     * Clear all shuffle bags and global history
+     * Clear all shuffle bags
      * Useful for debugging or reset functionality
      */
     public clearAll(): void {
         localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(GLOBAL_HISTORY_KEY);
-        console.log('🧹 Cleared all shuffle bags and global history');
+        console.log('🧹 Cleared all shuffle bags');
     }
 
     /**
