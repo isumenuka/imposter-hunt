@@ -8,9 +8,9 @@ const STORAGE_KEY = 'imposter-hunt-game-state';
 const PLAYER_ID_KEY = 'imposter_player_id';
 const SAVE_DEBOUNCE_MS = 500;
 
-// Initial empty state
+// Initial state for fresh startup - shows main menu, does not auto-connect
 const initialState: RoomState = {
-    gameMode: 'ONLINE',
+    gameMode: 'ONLINE', // Start in online mode to show main menu
     roomCode: '',
     players: [],
     phase: GamePhase.LOBBY,
@@ -21,7 +21,7 @@ const initialState: RoomState = {
         imposterCount: DEFAULT_IMPOSTER_COUNT,
         imposterClueEnabled: DEFAULT_ASSOCIATION_WORD_ENABLED,
     },
-    connectionStatus: 'DISCONNECTED',
+    connectionStatus: 'DISCONNECTED', // Don't auto-connect
     activePlayerId: undefined,
     isTurnHidden: false
 };
@@ -49,27 +49,10 @@ class GameService {
             sessionStorage.setItem(PLAYER_ID_KEY, this.playerId);
         }
 
-        // Try to restore state from localStorage
-        const savedState = this.loadState();
-
-        // Validate restored state
-        if (savedState && savedState.gameMode === 'ONLINE' && savedState.phase !== GamePhase.LOBBY) {
-            const playerExists = savedState.players.some(p => p.id === this.playerId);
-            if (!playerExists) {
-                console.log('Player not found in saved state, resetting to lobby');
-                this.clearSavedState();
-                this.state = initialState;
-            } else {
-                this.state = savedState;
-                // If we have a saved online state, attempt to reconnect
-                if (this.state.roomCode) {
-                    console.log(`Attempting to reconnect to room ${this.state.roomCode}`);
-                    this.setState({ connectionStatus: 'CONNECTING' });
-                }
-            }
-        } else {
-            this.state = savedState || initialState;
-        }
+        // CRITICAL FIX: Always start fresh to prevent stuck "connecting" screens
+        // Clear any previous saved states and use clean initial state
+        this.clearSavedState();
+        this.state = { ...initialState };
 
         // Set up state persistence listeners
         this.setupStatePersistence();
@@ -256,6 +239,7 @@ class GameService {
     // =========================================
 
     public async createGame(player: Player): Promise<string> {
+        this.setState({ gameMode: 'ONLINE' }); // Switch to online mode
         this.connectSocket();
 
         return new Promise((resolve, reject) => {
@@ -279,6 +263,7 @@ class GameService {
     }
 
     public async joinGame(roomCode: string, player: Player): Promise<void> {
+        this.setState({ gameMode: 'ONLINE' }); // Switch to online mode
         this.connectSocket();
 
         return new Promise((resolve, reject) => {

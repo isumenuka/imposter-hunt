@@ -15,9 +15,9 @@ export const ChatBox: React.FC<Props> = ({ roomState, currentPlayer }) => {
     const [unreadCount, setUnreadCount] = useState(0);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
-    const prevMessageCountRef = useRef(messages.length);
 
     const messages = roomState.messages || [];
+    const prevMessageCountRef = useRef(messages.length);
 
     // Detect new messages and play notification sound
     useEffect(() => {
