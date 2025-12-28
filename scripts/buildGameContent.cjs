@@ -744,7 +744,7 @@ export const getGameContent = (category: string): { word: string, associationWor
 
 `;
 
-const outputPath = path.resolve(__dirname, '../data/gameContent.ts');
+const outputPath = path.resolve(__dirname, '../data/gameContent.js');
 fs.writeFileSync(outputPath, fileContent);
 
 console.log(`Game content generated at ${outputPath}`);
