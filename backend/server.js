@@ -93,10 +93,25 @@ io.on('connection', (socket) => {
             // Broadcast to all players in room
             const room = gameManager.getRoom(result.roomCode);
             if (room) {
-                io.to(result.roomCode).emit('room_state', room.roomState);
+                room.roomState.players.forEach(p => {
+                    const playerSocket = room.players.get(p.id);
+                    if (playerSocket) {
+                        const filteredState = gameLogic.filterStateForPlayer(room.roomState, p.id);
+                        io.to(playerSocket).emit('room_state', filteredState);
+                    }
+                });
 
                 if (result.reconnected) {
-                    io.to(result.roomCode).emit('player_reconnected', { playerId: player.id });
+                    const playerData = room.roomState.players.find(p => p.id === player.id);
+                    io.to(result.roomCode).emit('player_reconnected', {
+                        playerId: player.id,
+                        playerName: playerData?.name || player.name
+                    });
+                } else {
+                    io.to(result.roomCode).emit('player_joined', {
+                        playerId: player.id,
+                        playerName: player.name
+                    });
                 }
             }
         } catch (error) {

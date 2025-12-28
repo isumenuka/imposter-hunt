@@ -26,6 +26,8 @@ export interface Player {
   isReady?: boolean; // Used during reveal phase
   votingReady?: boolean; // Used to track if player wants to start voting
   selectedCategories?: string[]; // Categories this player wants to play
+  disconnected?: boolean; // Player is currently disconnected
+  disconnectedAt?: number; // Timestamp when player disconnected
 }
 
 export interface GameConfig {

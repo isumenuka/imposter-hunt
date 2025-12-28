@@ -55,18 +55,39 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
               <span className="text-[10px] sm:text-xs">Add at least 3 players to start</span>
             </div>
           )}
-          {roomState.players.map((p, i) => (
-            <div key={p.id} className="flex items-center bg-slate-800/40 p-1.5 sm:p-2 rounded-lg animate-in slide-in-from-left-4 backdrop-blur-sm border border-slate-700/30" style={{ animationDelay: `${i * 50}ms` }}>
-              <span className="text-base sm:text-lg mr-1.5 sm:mr-2">{p.avatar}</span>
-              <span className="font-semibold text-xs sm:text-sm text-white flex-1">{p.name}</span>
-              <button
-                className="text-red-500 opacity-40 hover:opacity-100 px-1.5 transition-opacity"
-                onClick={() => gameService.removeOfflinePlayer(p.id)}
-              >
-                <X size={14} />
-              </button>
-            </div>
-          ))}
+          <div className="space-y-2">
+            {roomState.players.map((p, i) => (
+              <div key={p.id} className={`flex items-center gap-2 p-2 rounded-lg border backdrop-blur-sm ${p.disconnected
+                  ? 'bg-slate-900/30 border-red-800/40 opacity-60'
+                  : 'bg-slate-800/60 border-slate-700/50'
+                }`}>
+                <div className="flex items-center flex-1 gap-2">
+                  <span className={`text-lg ${p.disconnected ? 'opacity-50' : ''}`}>{p.avatar}</span>
+                  <div className="flex flex-col flex-1">
+                    <span className={`font-semibold text-xs ${p.disconnected ? 'text-slate-500' : 'text-white'}`}>
+                      {p.name}
+                    </span>
+                    {p.disconnected && (
+                      <span className="text-[9px] text-red-400 uppercase tracking-wide font-bold">
+                        Disconnected
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {p.isHost && (
+                  <div className="bg-purple-900/50 text-purple-300 px-1.5 py-0.5 rounded text-[9px] font-bold border border-purple-700/50 uppercase tracking-wide">
+                    Host
+                  </div>
+                )}
+                <button
+                  className="text-red-500 opacity-40 hover:opacity-100 px-1.5 transition-opacity"
+                  onClick={() => gameService.removeOfflinePlayer(p.id)}
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Add Player Form */}

@@ -27,6 +27,40 @@ function fisherYatesShuffle(array) {
 }
 
 class GameLogic {
+    constructor() {
+        // Track used words to prevent repetition across games
+        this.wordHistory = [];
+        this.MAX_HISTORY_SIZE = 30;
+    }
+
+    /**
+     * Add word to history and maintain size limit
+     * @param {string} word 
+     */
+    addToWordHistory(word) {
+        const normalizedWord = word.toLowerCase().trim();
+
+        // Remove if already exists (to keep most recent)
+        this.wordHistory = this.wordHistory.filter(w => w !== normalizedWord);
+
+        // Add to front
+        this.wordHistory.unshift(normalizedWord);
+
+        // Maintain max size (FIFO)
+        if (this.wordHistory.length > this.MAX_HISTORY_SIZE) {
+            this.wordHistory.pop();
+        }
+    }
+
+    /**
+     * Check if word is in history
+     * @param {string} word 
+     * @returns {boolean}
+     */
+    isWordInHistory(word) {
+        return this.wordHistory.includes(word.toLowerCase().trim());
+    }
+
     /**
      * Assign random unique avatars to players
      * @param {Array} players 
@@ -103,8 +137,27 @@ class GameLogic {
             Math.floor(Math.random() * availableCategories.length)
         ];
 
-        // Generate word and association word
-        const { word, associationWord } = await aiService.generateGameContent(selectedCategory);
+        // Generate unique word with retry logic
+        let word, associationWord;
+        let attempts = 0;
+        const MAX_ATTEMPTS = 10;
+
+        do {
+            const content = await aiService.generateGameContent(selectedCategory);
+            word = content.word;
+            associationWord = content.associationWord;
+            attempts++;
+
+            // Check if word is unique (not in session history)
+            if (!this.isWordInHistory(word)) {
+                break; // Found a unique word
+            }
+
+            console.log(`Word "${word}" already used, regenerating... (attempt ${attempts}/${MAX_ATTEMPTS})`);
+        } while (attempts < MAX_ATTEMPTS);
+
+        // Add word to history
+        this.addToWordHistory(word);
 
         return {
             players: playersWithRoles,
@@ -327,8 +380,27 @@ class GameLogic {
      * @returns {Promise<Object>} Updated game state
      */
     async reRandomizeSecretWord(config, players) {
-        // Generate new word and association word from same category
-        const { word, associationWord } = await aiService.generateGameContent(config.category);
+        // Generate new unique word and association word from same category
+        let word, associationWord;
+        let attempts = 0;
+        const MAX_ATTEMPTS = 10;
+
+        do {
+            const content = await aiService.generateGameContent(config.category);
+            word = content.word;
+            associationWord = content.associationWord;
+            attempts++;
+
+            // Check if word is unique (not in session history)
+            if (!this.isWordInHistory(word)) {
+                break; // Found a unique word
+            }
+
+            console.log(`Re-randomize: Word "${word}" already used, regenerating... (attempt ${attempts}/${MAX_ATTEMPTS})`);
+        } while (attempts < MAX_ATTEMPTS);
+
+        // Add word to history
+        this.addToWordHistory(word);
 
         // Reset player ready states and votes, keep roles
         const resetPlayers = players.map(p => ({
