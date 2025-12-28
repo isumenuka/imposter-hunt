@@ -25,7 +25,8 @@ class SoundManager {
         const soundFiles = {
             'reveal': '/sound/Imposter and Innocent  Reveal.mp3',
             'innocentVictory': '/sound/Innocent Victory Sound.mp3',
-            'imposterVictory': '/sound/Imposter Victory Sound.mp3'
+            'imposterVictory': '/sound/Imposter Victory Sound.mp3',
+            'notify': '/sound/notify.mp3'
         };
 
         Object.entries(soundFiles).forEach(([key, path]) => {
@@ -94,6 +95,19 @@ class SoundManager {
     playClick() {
         // Use the reveal sound at very low volume for clicks
         this.playSound('reveal', 0.15);
+    }
+
+    /**
+     * Notification Sound - For new chat messages
+     */
+    playNotification() {
+        // Try to play notify sound, fallback to reveal at low volume if not found
+        if (this.sounds.has('notify')) {
+            this.playSound('notify', 0.35);
+        } else {
+            // Fallback to reveal sound at low volume
+            this.playSound('reveal', 0.2);
+        }
     }
 
     /**

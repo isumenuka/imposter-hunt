@@ -31,8 +31,8 @@ export const ChatBox: React.FC<Props> = ({ roomState, currentPlayer }) => {
             // If chat is minimized, increment unread count and play sound
             if (!isExpanded) {
                 setUnreadCount(prev => prev + newMessagesCount);
-                // Play notification sound (subtle click)
-                soundManager.playClick();
+                // Play notification sound for new message
+                soundManager.playNotification();
             }
         }
 

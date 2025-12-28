@@ -1,4 +1,4 @@
-import { aiService } from './aiService.js';
+import { getGameContent } from '../data/gameContent.js';
 
 /**
  * Server-side game logic for Imposter Guess Word
@@ -137,27 +137,10 @@ class GameLogic {
             Math.floor(Math.random() * availableCategories.length)
         ];
 
-        // Generate unique word with retry logic
-        let word, associationWord;
-        let attempts = 0;
-        const MAX_ATTEMPTS = 10;
-
-        do {
-            const content = await aiService.generateGameContent(selectedCategory);
-            word = content.word;
-            associationWord = content.associationWord;
-            attempts++;
-
-            // Check if word is unique (not in session history)
-            if (!this.isWordInHistory(word)) {
-                break; // Found a unique word
-            }
-
-            console.log(`Word "${word}" already used, regenerating... (attempt ${attempts}/${MAX_ATTEMPTS})`);
-        } while (attempts < MAX_ATTEMPTS);
-
-        // Add word to history
-        this.addToWordHistory(word);
+        // Get word from pre-built content (uses shuffle bag for uniqueness)
+        const content = getGameContent(selectedCategory);
+        const word = content.word;
+        const associationWord = content.associationWord;
 
         return {
             players: playersWithRoles,
@@ -380,27 +363,10 @@ class GameLogic {
      * @returns {Promise<Object>} Updated game state
      */
     async reRandomizeSecretWord(config, players) {
-        // Generate new unique word and association word from same category
-        let word, associationWord;
-        let attempts = 0;
-        const MAX_ATTEMPTS = 10;
-
-        do {
-            const content = await aiService.generateGameContent(config.category);
-            word = content.word;
-            associationWord = content.associationWord;
-            attempts++;
-
-            // Check if word is unique (not in session history)
-            if (!this.isWordInHistory(word)) {
-                break; // Found a unique word
-            }
-
-            console.log(`Re-randomize: Word "${word}" already used, regenerating... (attempt ${attempts}/${MAX_ATTEMPTS})`);
-        } while (attempts < MAX_ATTEMPTS);
-
-        // Add word to history
-        this.addToWordHistory(word);
+        // Get new word from pre-built content (uses shuffle bag for uniqueness)
+        const content = getGameContent(config.category);
+        const word = content.word;
+        const associationWord = content.associationWord;
 
         // Reset player ready states and votes, keep roles
         const resetPlayers = players.map(p => ({
