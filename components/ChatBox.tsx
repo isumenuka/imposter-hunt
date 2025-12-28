@@ -28,11 +28,12 @@ export const ChatBox: React.FC<Props> = ({ roomState, currentPlayer }) => {
         if (currentMessageCount > previousCount) {
             const newMessagesCount = currentMessageCount - previousCount;
 
-            // If chat is minimized, increment unread count and play sound
+            // Play notification sound for every new message
+            soundManager.playNotification();
+
+            // If chat is minimized, increment unread count
             if (!isExpanded) {
                 setUnreadCount(prev => prev + newMessagesCount);
-                // Play notification sound for new message
-                soundManager.playNotification();
             }
         }
 
