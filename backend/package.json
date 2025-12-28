@@ -6,6 +6,7 @@
     "type": "module",
     "scripts": {
         "build": "node ../scripts/buildGameContent.cjs",
+        "postinstall": "npm run build",
         "start": "node server.js",
         "dev": "node --watch server.js",
         "test": "node --test"

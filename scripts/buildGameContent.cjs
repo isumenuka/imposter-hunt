@@ -525,7 +525,7 @@ const fileContent = `
 // The data is Base64 encoded to prevent casual inspection.
 
 // Helper to decode data
-const decodeData = (encoded: string) => {
+const decodeData = (encoded) => {
   try {
     return JSON.parse(atob(encoded));
   } catch (e) {
@@ -537,7 +537,7 @@ const decodeData = (encoded: string) => {
 // THE PROTECTED DATA BLOB
 const PROTECTED_DATA_STRING = "${encoded}";
 
-let cachedData: Record<string, Array<{ word: string, clueWords: string[] }>> | null = null;
+let cachedData = null;
 
 // ============================================
 // IMPROVED RANDOMIZATION WITH HISTORY TRACKING
@@ -545,11 +545,11 @@ let cachedData: Record<string, Array<{ word: string, clueWords: string[] }>> | n
 
 // Store recently used words per category to prevent immediate repetition
 // Format: { "categoryName": ["word1", "word2", ...] }
-const recentlyUsedWords: Record<string, string[]> = {};
+const recentlyUsedWords = {};
 
 // Store shuffle bags per category for better distribution
 // Format: { "categoryName": [indices...] }
-const shuffleBags: Record<string, number[]> = {};
+const shuffleBags = {};
 
 // ============================================
 // SUB-CATEGORY MANAGEMENT FOR "THE BOYS"
@@ -576,13 +576,13 @@ const THE_BOYS_SUBCATEGORIES = [
 ];
 
 // Track the last used sub-category for "The Boys"
-let lastUsedSubCategory: string | null = null;
+let lastUsedSubCategory = null;
 
 /**
  * Fisher-Yates shuffle algorithm for array shuffling
  * Ensures uniform random distribution
  */
-const shuffleArray = <T>(array: T[]): T[] => {
+const shuffleArray = (array) => {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -595,7 +595,7 @@ const shuffleArray = <T>(array: T[]): T[] => {
  * Get a shuffled bag of indices for a category
  * This ensures every word gets seen before repetition
  */
-const getShuffleBag = (category: string, totalWords: number): number[] => {
+const getShuffleBag = (category, totalWords) => {
   if (!shuffleBags[category] || shuffleBags[category].length === 0) {
     // Create a new shuffled bag with all word indices
     const indices = Array.from({ length: totalWords }, (_, i) => i);
@@ -609,7 +609,7 @@ const getShuffleBag = (category: string, totalWords: number): number[] => {
  * Prevents getting the same word until a majority of words have been seen
  * Special handling for "The Boys" category with sub-category rotation
  */
-export const getGameContent = (category: string): { word: string, associationWord: string } => {
+export const getGameContent = (category) => {
   if (!cachedData) {
     cachedData = decodeData(PROTECTED_DATA_STRING);
   }
