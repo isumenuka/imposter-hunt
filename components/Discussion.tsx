@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Player, RoomState } from '../types';
 import { gameService } from '../services/gameService';
 import { Button } from './Button';
-import { MessageCircle, RefreshCw, Eye, EyeOff } from 'lucide-react';
+import { MessageCircle, RefreshCw, CheckCircle2, Clock } from 'lucide-react';
 
 interface Props {
   roomState: RoomState;
@@ -18,6 +18,10 @@ export const Discussion: React.FC<Props> = ({ roomState, currentPlayer }) => {
   const [showWord, setShowWord] = useState(false);
 
   const isAdmin = roomState.gameMode === 'OFFLINE' ? true : currentPlayer.isHost;
+  const hasMarkedReady = currentPlayer.votingReady === true;
+  const readyPlayers = roomState.players.filter(p => p.votingReady === true);
+  const notReadyPlayers = roomState.players.filter(p => p.votingReady !== true);
+  const allReady = readyPlayers.length === roomState.players.length;
 
   useEffect(() => {
     // 3 second intro for "First to speak"
@@ -37,15 +41,13 @@ export const Discussion: React.FC<Props> = ({ roomState, currentPlayer }) => {
     return () => clearInterval(interval);
   }, [roomState.startTime, roomState.config.roundDuration]);
 
-  // Auto-transition to voting when timer reaches 0
-  useEffect(() => {
-    if (timeLeft === 0) {
-      gameService.startVoting();
-    }
-  }, [timeLeft]);
+  // No auto-transition - players must manually click "Start Voting"
+  // Timer reaching 0 just shows a message
 
   const handleVoteStart = () => {
-    gameService.startVoting();
+    // In online mode, mark this player as ready
+    // In offline mode, just start voting immediately
+    gameService.markVotingReady();
   };
 
   const handleReRandomize = () => {
@@ -129,6 +131,14 @@ export const Discussion: React.FC<Props> = ({ roomState, currentPlayer }) => {
           </div>
         </div>
 
+        {/* Timer expired message */}
+        {timeLeft === 0 && !allReady && (
+          <div className="w-full bg-yellow-900/30 border border-yellow-700/50 rounded-xl p-3 text-center">
+            <Clock size={24} className="mx-auto mb-2 text-yellow-400" />
+            <p className="text-yellow-400 font-semibold text-sm">Time's up! Click "Start Voting" when ready.</p>
+          </div>
+        )}
+
         {/* Speaking Order Display */}
         {roomState.speakingOrder && roomState.speakingOrder.length > 0 && (
           <div className="w-full space-y-2">
@@ -186,6 +196,64 @@ export const Discussion: React.FC<Props> = ({ roomState, currentPlayer }) => {
             </div>
           </div>
         )}
+
+        {/* Voting Readiness Status - Only in Online Mode */}
+        {roomState.gameMode === 'ONLINE' && (
+          <div className="w-full space-y-3">
+            <div className="flex items-center justify-center gap-2">
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"></div>
+              <span className="text-xs font-bold tracking-widest uppercase text-blue-300">
+                Voting Readiness
+              </span>
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"></div>
+            </div>
+
+            <div className="w-full max-w-xs mx-auto p-3 bg-slate-900/60 rounded-2xl border border-slate-700/50 backdrop-blur-sm">
+              <div className="w-full bg-slate-700 h-2 rounded-full overflow-hidden mb-2">
+                <div
+                  className="bg-blue-500 h-full transition-all duration-500 relative"
+                  style={{ width: `${(readyPlayers.length / roomState.players.length) * 100}%` }}
+                >
+                  <div className="absolute inset-0 bg-white/20 w-full h-full animate-[shimmer_2s_infinite]"></div>
+                </div>
+              </div>
+              <p className="text-[10px] text-slate-400 text-center font-semibold">
+                {readyPlayers.length} / {roomState.players.length} ready to vote
+              </p>
+            </div>
+
+            {/* Ready Players */}
+            {readyPlayers.length > 0 && (
+              <div className="w-full space-y-2">
+                <p className="text-[10px] text-green-400 font-semibold uppercase tracking-wider text-center">Ready ✓</p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {readyPlayers.map(p => (
+                    <div key={p.id} className="flex items-center gap-1 bg-green-900/40 px-2 py-1 rounded-lg border border-green-700/50">
+                      <CheckCircle2 size={12} className="text-green-400" />
+                      <span className="text-base">{p.avatar}</span>
+                      <span className="text-[10px] text-green-300 font-medium">{p.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Not Ready Players */}
+            {notReadyPlayers.length > 0 && (
+              <div className="w-full space-y-2">
+                <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider text-center">Not Ready</p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {notReadyPlayers.map(p => (
+                    <div key={p.id} className="flex items-center gap-1 bg-slate-800/40 px-2 py-1 rounded-lg border border-slate-700/30">
+                      <span className="text-base">{p.avatar}</span>
+                      <span className="text-[10px] text-slate-400 font-medium">{p.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Admin Re-Randomize Button */}
@@ -202,15 +270,33 @@ export const Discussion: React.FC<Props> = ({ roomState, currentPlayer }) => {
             {isReRandomizing ? 'Re-randomizing...' : 'Re-Randomize Secret Word'}
           </Button>
 
-          <Button fullWidth onClick={handleVoteStart} variant="primary" className="shadow-xl">
-            Start Voting
+          <Button
+            fullWidth
+            onClick={handleVoteStart}
+            variant={hasMarkedReady ? "secondary" : "primary"}
+            disabled={hasMarkedReady && !allReady}
+            className="shadow-xl"
+          >
+            {hasMarkedReady
+              ? `Waiting... (${readyPlayers.length}/${roomState.players.length})`
+              : 'Start Voting'
+            }
           </Button>
         </div>
       )}
 
       {!isAdmin && (
-        <Button fullWidth onClick={handleVoteStart} variant="primary" className="shadow-xl">
-          Start Voting
+        <Button
+          fullWidth
+          onClick={handleVoteStart}
+          variant={hasMarkedReady ? "secondary" : "primary"}
+          disabled={hasMarkedReady && !allReady}
+          className="shadow-xl max-w-2xl mx-auto"
+        >
+          {hasMarkedReady
+            ? `Waiting... (${readyPlayers.length}/${roomState.players.length})`
+            : 'Start Voting'
+          }
         </Button>
       )}
 

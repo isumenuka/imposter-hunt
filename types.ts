@@ -24,6 +24,7 @@ export interface Player {
   role?: 'innocent' | 'imposter';
   vote?: string; // ID of the player they voted for
   isReady?: boolean; // Used during reveal phase
+  votingReady?: boolean; // Used to track if player wants to start voting
   selectedCategories?: string[]; // Categories this player wants to play
 }
 
@@ -68,6 +69,7 @@ export type GameActionType =
   | 'GO_TO_SETTINGS'
   | 'START_GAME'
   | 'PLAYER_READY'
+  | 'MARK_VOTING_READY'
   | 'START_VOTING'
   | 'CAST_VOTE'
   | 'RESET_GAME'

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Player, RoomState } from '../types';
 import { gameService } from '../services/gameService';
 import { Button } from './Button';
-import { Users, User, X, UserPlus, Shield } from 'lucide-react';
+import { Users, User, X, UserPlus, Shield, Copy, Check } from 'lucide-react';
 
 interface Props {
   roomState: RoomState;
@@ -14,8 +14,19 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
   const [mode, setMode] = useState<'MAIN' | 'JOIN_INPUT'>('MAIN');
   const [inputCode, setInputCode] = useState('');
   const [isBusy, setIsBusy] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
 
   const inputClass = "w-full bg-slate-800/60 p-2.5 sm:p-3 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium text-sm border border-slate-700/50 transition-all";
+
+  const handleCopyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(roomState.roomCode);
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
 
   // === OFFLINE MODE LOBBY ===
   if (roomState.gameMode === 'OFFLINE') {
@@ -112,9 +123,29 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
               {roomState.players.length}/12
             </div>
           </div>
-          <div className="text-center p-2.5 sm:p-3 bg-slate-800/60 rounded-xl border border-slate-700/50 mb-2 sm:mb-3 relative overflow-hidden">
-            <p className="text-slate-400 text-[9px] uppercase tracking-wider mb-0.5 font-semibold">Room Code</p>
-            <p className="text-xl sm:text-2xl font-mono font-black text-purple-400 tracking-widest select-all relative z-10">{roomState.roomCode}</p>
+          <div className="relative">
+            <div className="text-center p-2.5 sm:p-3 bg-slate-800/60 rounded-xl border border-slate-700/50 mb-2 sm:mb-3 relative overflow-hidden">
+              <p className="text-slate-400 text-[9px] uppercase tracking-wider mb-0.5 font-semibold">Room Code</p>
+              <div className="flex items-center justify-center gap-2">
+                <p className="text-xl sm:text-2xl font-mono font-black text-purple-400 tracking-widest select-all relative z-10">{roomState.roomCode}</p>
+                <button
+                  onClick={handleCopyCode}
+                  className="p-1.5 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600/50 transition-all hover:scale-105 active:scale-95"
+                  title="Copy room code"
+                >
+                  {copiedCode ? (
+                    <Check size={16} className="text-green-400" />
+                  ) : (
+                    <Copy size={16} className="text-slate-300" />
+                  )}
+                </button>
+              </div>
+              {copiedCode && (
+                <div className="absolute top-0 right-0 m-2 bg-green-600 text-white text-[10px] font-bold px-2 py-1 rounded-lg animate-in fade-in slide-in-from-top-2">
+                  Copied!
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="w-full bg-slate-700 h-1.5 rounded-full overflow-hidden mb-1.5">

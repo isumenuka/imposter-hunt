@@ -132,12 +132,42 @@ class GameLogic {
         const shuffledRemaining = fisherYatesShuffle(remainingPlayers);
         const speakingOrder = [firstSpeakerId, ...shuffledRemaining.map(p => p.id)];
 
+        // Reset votingReady for all players
+        const playersWithResetVotingReady = players.map(p => ({
+            ...p,
+            votingReady: false
+        }));
+
         return {
             phase: 'DISCUSSION',
             firstSpeakerId,
             speakingOrder,
-            startTime: Date.now()
+            startTime: Date.now(),
+            players: playersWithResetVotingReady
         };
+    }
+
+    /**
+     * Mark a player as ready for voting
+     * @param {string} playerId 
+     * @param {Array} players 
+     * @returns {Array} Updated players
+     */
+    markPlayerVotingReady(playerId, players) {
+        return players.map(player =>
+            player.id === playerId
+                ? { ...player, votingReady: true }
+                : player
+        );
+    }
+
+    /**
+     * Check if all players are ready for voting
+     * @param {Array} players 
+     * @returns {boolean}
+     */
+    allPlayersVotingReady(players) {
+        return players.every(p => p.votingReady === true);
     }
 
     /**

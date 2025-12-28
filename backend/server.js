@@ -294,6 +294,42 @@ io.on('connection', (socket) => {
         }
     });
 
+    // ========== MARK VOTING READY ==========
+    socket.on('mark_voting_ready', (data) => {
+        try {
+            const roomCode = gameManager.getRoomCodeForSocket(socket.id);
+            if (!roomCode) return;
+
+            const room = gameManager.getRoom(roomCode);
+            if (!room) return;
+
+            const playerId = gameManager.getPlayerIdFromSocket(socket.id, roomCode);
+
+            // Mark player as ready for voting
+            const updatedPlayers = gameLogic.markPlayerVotingReady(playerId, room.roomState.players);
+            gameManager.updateRoomState(roomCode, { players: updatedPlayers });
+
+            // Check if all players are ready
+            if (gameLogic.allPlayersVotingReady(updatedPlayers)) {
+                // All players ready, transition to voting
+                gameManager.updateRoomState(roomCode, { phase: 'VOTING' });
+            }
+
+            // Broadcast state to all players
+            room.roomState.players.forEach(p => {
+                const playerSocket = gameManager.getRoom(roomCode).players.get(p.id);
+                if (playerSocket) {
+                    const filteredState = gameLogic.filterStateForPlayer(room.roomState, p.id);
+                    io.to(playerSocket).emit('room_state', filteredState);
+                }
+            });
+
+        } catch (error) {
+            console.error('Error marking voting ready:', error);
+            socket.emit('error', { message: error.message });
+        }
+    });
+
     // ========== START VOTING ==========
     socket.on('start_voting', (data) => {
         try {
@@ -303,6 +339,9 @@ io.on('connection', (socket) => {
             const room = gameManager.getRoom(roomCode);
             if (!room) return;
 
+            // For backward compatibility: allow immediate transition in offline mode
+            // In online mode, this should normally be triggered by mark_voting_ready
+            // but we'll keep it functional for admin override
             gameManager.updateRoomState(roomCode, { phase: 'VOTING' });
 
             // Broadcast to all

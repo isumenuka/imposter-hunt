@@ -496,6 +496,17 @@ class GameService {
         }
     }
 
+    public markVotingReady() {
+        // Offline mode: not applicable (no voting readiness tracking in offline)
+        if (this.state.gameMode === 'OFFLINE') {
+            // Just start voting immediately in offline mode
+            this.startVoting();
+            return;
+        }
+        // Online mode: emit to server
+        this.emitAction('mark_voting_ready');
+    }
+
     public startVoting() {
         // Offline mode: start turn-based voting
         if (this.state.gameMode === 'OFFLINE') {
