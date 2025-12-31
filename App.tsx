@@ -25,6 +25,20 @@ const App: React.FC = () => {
     return unsubscribe;
   }, []);
 
+  // Detect room code from URL parameter for shareable links
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const roomCode = params.get('room');
+
+    if (roomCode) {
+      // Store the room code for auto-join
+      sessionStorage.setItem('auto_join_room', roomCode.toUpperCase());
+
+      // Clean up URL without reloading
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
+
   // PWA Install Prompt Handler
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {

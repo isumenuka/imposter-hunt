@@ -15,6 +15,7 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
   const [inputCode, setInputCode] = useState('');
   const [isBusy, setIsBusy] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   const inputClass = "w-full bg-slate-800/60 p-2.5 sm:p-3 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium text-sm border border-slate-700/50 transition-all";
 
@@ -27,6 +28,27 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
       console.error('Failed to copy:', err);
     }
   };
+
+  const handleCopyLink = async () => {
+    try {
+      const shareLink = `${window.location.origin}/?room=${roomState.roomCode}`;
+      await navigator.clipboard.writeText(shareLink);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  // Check for auto-join room code from URL
+  React.useEffect(() => {
+    const autoJoinRoom = sessionStorage.getItem('auto_join_room');
+    if (autoJoinRoom && !currentPlayer && roomState.connectionStatus !== 'CONNECTED') {
+      setInputCode(autoJoinRoom);
+      setMode('JOIN_INPUT');
+      sessionStorage.removeItem('auto_join_room');
+    }
+  }, []);
 
   // === OFFLINE MODE LOBBY ===
   if (roomState.gameMode === 'OFFLINE') {
@@ -58,8 +80,8 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
           <div className="space-y-2">
             {roomState.players.map((p, i) => (
               <div key={p.id} className={`flex items-center gap-2 p-2 rounded-lg border backdrop-blur-sm ${p.disconnected
-                  ? 'bg-slate-900/30 border-red-800/40 opacity-60'
-                  : 'bg-slate-800/60 border-slate-700/50'
+                ? 'bg-slate-900/30 border-red-800/40 opacity-60'
+                : 'bg-slate-800/60 border-slate-700/50'
                 }`}>
                 <div className="flex items-center flex-1 gap-2">
                   <span className={`text-lg ${p.disconnected ? 'opacity-50' : ''}`}>{p.avatar}</span>
@@ -167,6 +189,26 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
                 </div>
               )}
             </div>
+
+            {/* Share Link Button */}
+            {isHost && (
+              <button
+                onClick={handleCopyLink}
+                className="w-full mt-2 p-2.5 rounded-xl bg-purple-900/30 hover:bg-purple-900/50 border border-purple-700/50 transition-all flex items-center justify-center gap-2 group"
+              >
+                {copiedLink ? (
+                  <>
+                    <Check size={16} className="text-green-400" />
+                    <span className="text-sm font-bold text-green-400">Link Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy size={16} className="text-purple-300 group-hover:scale-110 transition-transform" />
+                    <span className="text-sm font-bold text-purple-300">Share Lobby Link</span>
+                  </>
+                )}
+              </button>
+            )}
           </div>
 
           <div className="w-full bg-slate-700 h-1.5 rounded-full overflow-hidden mb-1.5">
