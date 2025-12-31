@@ -26,7 +26,7 @@ class GameManager {
      * @returns {string}
      */
     generateRoomCode() {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const chars = '0123456789';
         let code;
 
         do {

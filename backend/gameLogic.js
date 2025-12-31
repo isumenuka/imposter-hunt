@@ -198,12 +198,14 @@ class GameLogic {
     }
 
     /**
-     * Check if all players are ready for voting
+     * Check if at least half of players are ready for voting
      * @param {Array} players 
      * @returns {boolean}
      */
     allPlayersVotingReady(players) {
-        return players.every(p => p.votingReady === true);
+        const readyCount = players.filter(p => p.votingReady === true).length;
+        const requiredCount = Math.ceil(players.length / 2); // At least 50%
+        return readyCount >= requiredCount;
     }
 
     /**
@@ -401,6 +403,7 @@ class GameLogic {
             role: undefined,
             vote: undefined,
             isReady: undefined,
+            votingReady: false,
             selectedCategories: undefined
         }));
 
