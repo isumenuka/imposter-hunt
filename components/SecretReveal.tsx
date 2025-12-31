@@ -4,6 +4,7 @@ import { gameService } from '../services/gameService';
 import { Button } from './Button';
 import { Timer, Lock, Eye, AlertCircle, BadgeCheck } from 'lucide-react';
 import { soundManager } from '../utils/sounds';
+import PixelCard from './PixelCard';
 
 interface Props {
   player: Player;
@@ -98,56 +99,61 @@ export const SecretReveal: React.FC<Props> = ({ player, secretWord, associationW
 
     return (
       <div className="flex flex-col h-full p-3 sm:p-4 items-center justify-center animate-in fade-in zoom-in duration-300">
-        <div className={`
-          relative w-full aspect-[3/4] rounded-2xl sm:rounded-3xl p-4 sm:p-6 flex flex-col items-center justify-between shadow-xl overflow-hidden border
-          ${isInnocent
-            ? 'bg-gradient-to-br from-slate-900/90 to-slate-950/90 border-white/10'
-            : 'bg-gradient-to-br from-red-950/90 to-red-900/90 border-red-500/20'}
-        `}>
-          {/* Background FX */}
-          <div className={`absolute inset-0 opacity-20 ${isInnocent ? 'bg-blue-500/10' : 'bg-red-500/20'}`}></div>
+        <PixelCard
+          variant={isInnocent ? 'blue' : 'pink'}
+          className="w-full max-w-sm !h-auto !aspect-[3/4]"
+        >
+          <div className={`
+            absolute inset-0 rounded-2xl sm:rounded-3xl p-4 sm:p-6 flex flex-col items-center justify-between overflow-hidden border
+            ${isInnocent
+              ? 'bg-gradient-to-br from-slate-900/90 to-slate-950/90 border-white/10'
+              : 'bg-gradient-to-br from-red-950/90 to-red-900/90 border-red-500/20'}
+          `}>
+            {/* Background FX */}
+            <div className={`absolute inset-0 opacity-20 ${isInnocent ? 'bg-blue-500/10' : 'bg-red-500/20'}`}></div>
 
-          <div className="flex items-center gap-1.5 mt-2 z-10 bg-slate-900/60 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full border border-slate-700/50">
-            <div className={`w-1.5 h-1.5 rounded-full ${isInnocent ? 'bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.7)]' : 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.7)]'} animate-pulse`}></div>
-            <span className="text-[9px] sm:text-[10px] font-semibold tracking-wider uppercase text-slate-400 flex items-center gap-0.5 sm:gap-1">
-              <BadgeCheck size={10} className="text-green-500" />
-              Confirmed
-            </span>
-          </div>
-
-          <div className="text-center z-10 space-y-2 sm:space-y-3">
-            <div className="text-5xl sm:text-6xl mb-3 sm:mb-4 transform hover:scale-105 transition-transform">
-              {isInnocent ? player.avatar : (
-                <div className="flex items-center justify-center w-full">
-                  <Eye size={64} className="text-red-500 sm:w-20 sm:h-20" strokeWidth={2} />
-                </div>
-              )}
+            <div className="flex items-center gap-1.5 mt-2 z-10 bg-slate-900/60 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full border border-slate-700/50">
+              <div className={`w-1.5 h-1.5 rounded-full ${isInnocent ? 'bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.7)]' : 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.7)]'} animate-pulse`}></div>
+              <span className="text-[9px] sm:text-[10px] font-semibold tracking-wider uppercase text-slate-400 flex items-center gap-0.5 sm:gap-1">
+                <BadgeCheck size={10} className="text-green-500" />
+                Confirmed
+              </span>
             </div>
 
-            <div className={`
+            <div className="text-center z-10 space-y-2 sm:space-y-3">
+              <div className="text-5xl sm:text-6xl mb-3 sm:mb-4 transform hover:scale-105 transition-transform">
+                {isInnocent ? player.avatar : (
+                  <div className="flex items-center justify-center w-full">
+                    <Eye size={64} className="text-red-500 sm:w-20 sm:h-20" strokeWidth={2} />
+                  </div>
+                )}
+              </div>
+
+              <div className={`
               px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl border font-black text-xl sm:text-2xl tracking-wide uppercase backdrop-blur-sm
               ${isInnocent
-                ? 'border-blue-500/20 text-blue-400 bg-slate-800/60'
-                : 'border-red-500/20 text-red-500 bg-red-900/30'}
+                  ? 'border-blue-500/20 text-blue-400 bg-slate-800/60'
+                  : 'border-red-500/20 text-red-500 bg-red-900/30'}
             `}>
-              {isInnocent ? 'Innocent' : 'Imposter'}
+                {isInnocent ? 'Innocent' : 'Imposter'}
+              </div>
             </div>
-          </div>
 
-          {(isInnocent || showAssociation) && (
-            <div className={`
+            {(isInnocent || showAssociation) && (
+              <div className={`
               w-full p-3 sm:p-4 rounded-xl z-10 text-center backdrop-blur-sm border border-white/10
               ${isInnocent ? 'bg-slate-900/40' : 'bg-red-900/30'}
             `}>
-              <p className="text-[9px] sm:text-[10px] uppercase tracking-wider text-slate-500 mb-1 sm:mb-1.5 font-semibold">
-                {isInnocent ? 'Secret Word' : 'Association Word'}
-              </p>
-              <p className="text-2xl sm:text-3xl font-black text-white leading-tight">
-                {isInnocent ? secretWord : associationWord}
-              </p>
-            </div>
-          )}
-        </div>
+                <p className="text-[9px] sm:text-[10px] uppercase tracking-wider text-slate-500 mb-1 sm:mb-1.5 font-semibold">
+                  {isInnocent ? 'Secret Word' : 'Association Word'}
+                </p>
+                <p className="text-2xl sm:text-3xl font-black text-white leading-tight">
+                  {isInnocent ? secretWord : associationWord}
+                </p>
+              </div>
+            )}
+          </div>
+        </PixelCard>
 
         <Button fullWidth className="mt-4 sm:mt-6" onClick={handleNext}>
           I Understand &rarr;

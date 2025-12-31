@@ -11,6 +11,7 @@ import { ChatBox } from './components/ChatBox';
 import { Button } from './components/Button';
 import { Credits } from './components/Credits';
 import { Gamepad2 } from 'lucide-react';
+import Squares from './components/Squares';
 
 const App: React.FC = () => {
   const [roomState, setRoomState] = useState<RoomState | null>(null);
@@ -179,11 +180,15 @@ const App: React.FC = () => {
     <div className="dark">
       <div className="relative min-h-screen w-full bg-slate-900 overflow-hidden transition-colors duration-300 font-sans text-white">
 
-        {/* === ANIMATED STAR BACKGROUND === */}
+        {/* === ANIMATED SQUARES BACKGROUND === */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(12)].map((_, i) => (
-            <div key={i} className="star"></div>
-          ))}
+          <Squares
+            speed={0.5}
+            squareSize={40}
+            direction='diagonal'
+            borderColor='rgba(139, 92, 246, 0.15)'
+            hoverFillColor='rgba(139, 92, 246, 0.05)'
+          />
         </div>
 
         {/* === MAIN CONTENT CONTAINER === */}
