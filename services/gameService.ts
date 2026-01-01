@@ -250,10 +250,17 @@ class GameService {
             this.reconnectAttempts++;
 
             if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+                console.error('❌ Max reconnection attempts reached. Disconnecting...');
                 this.setState({
                     connectionStatus: 'DISCONNECTED',
-                    error: 'Failed to connect to server. Please check your internet connection.'
+                    error: 'Failed to connect to server. Please check that the backend server is running.'
                 });
+                // Reset reconnect attempts
+                this.reconnectAttempts = 0;
+                // Disconnect the socket to stop further attempts
+                if (this.socket) {
+                    this.socket.disconnect();
+                }
             }
         });
 

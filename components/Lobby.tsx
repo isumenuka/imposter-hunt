@@ -261,6 +261,18 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
           <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
         </div>
         <p className="text-slate-400 font-bold animate-pulse">Connecting...</p>
+
+        {/* Back button to cancel connection */}
+        <Button
+          variant="ghost"
+          onClick={() => {
+            setIsBusy(false); // Reset busy state to allow UI to update
+            gameService.leaveRoom();
+          }}
+          className="!text-xs"
+        >
+          ← Cancel
+        </Button>
       </div>
     );
   }
