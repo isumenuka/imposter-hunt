@@ -15,6 +15,9 @@ class GameManager {
         // playerToSocket: Map playerId to socket.id for reconnection
         this.playerToSocket = new Map();
 
+        // Reconnection timeout (5 minutes)
+        this.RECONNECTION_TIMEOUT = 5 * 60 * 1000;
+
         // Start cleanup interval (every 5 minutes)
         this.startCleanupInterval();
 
@@ -265,10 +268,10 @@ class GameManager {
                 }
             }
 
-            // Schedule permanent removal after 5 minutes
+            // Schedule permanent removal after timeout period
             setTimeout(() => {
                 this.permanentlyRemovePlayer(roomCode, playerId);
-            }, 5 * 60 * 1000); // 5 minutes
+            }, this.RECONNECTION_TIMEOUT);
         }
 
         room.lastActivity = Date.now();

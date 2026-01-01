@@ -20,9 +20,11 @@ export const Voting: React.FC<Props> = ({ roomState, currentPlayer }) => {
   };
 
   const hasVoted = !!currentPlayer.vote;
+  const connectedPlayers = roomState.players.filter(p => !p.disconnected);
+  const disconnectedPlayers = roomState.players.filter(p => p.disconnected);
 
   if (hasVoted) {
-    const notVoted = roomState.players.filter(p => !p.vote);
+    const notVoted = connectedPlayers.filter(p => !p.vote);
 
     return (
       <div className="flex flex-col items-center justify-center h-full p-4 sm:p-6 text-center space-y-3 sm:space-y-4">
@@ -34,12 +36,19 @@ export const Voting: React.FC<Props> = ({ roomState, currentPlayer }) => {
           <div className="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
             <div
               className="bg-blue-500 h-full transition-all duration-500 relative"
-              style={{ width: `${(roomState.players.filter(p => !!p.vote).length / roomState.players.length) * 100}%` }}
+              style={{ width: `${(connectedPlayers.filter(p => !!p.vote).length / connectedPlayers.length) * 100}%` }}
             >
               <div className="absolute inset-0 bg-white/20 w-full h-full animate-[shimmer_2s_infinite]"></div>
             </div>
           </div>
-          <p className="text-[10px] text-slate-500 mt-1.5 font-semibold">{roomState.players.filter(p => !!p.vote).length} / {roomState.players.length} voted</p>
+          <p className="text-[10px] text-slate-500 mt-1.5 font-semibold">
+            {connectedPlayers.filter(p => !!p.vote).length} / {connectedPlayers.length} voted
+            {disconnectedPlayers.length > 0 && (
+              <span className="block text-[9px] text-red-400 mt-0.5">
+                ({disconnectedPlayers.length} disconnected)
+              </span>
+            )}
+          </p>
         </div>
 
         {notVoted.length > 0 && (
@@ -92,7 +101,7 @@ export const Voting: React.FC<Props> = ({ roomState, currentPlayer }) => {
       </div>
 
       <div className="grid grid-cols-2 gap-2 sm:gap-3 overflow-y-auto pb-2 scrollbar-hide">
-        {roomState.players.map(p => (
+        {connectedPlayers.map(p => (
           <button
             key={p.id}
             onClick={() => setSelectedSuspect(p.id)}

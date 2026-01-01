@@ -19,9 +19,11 @@ export const Discussion: React.FC<Props> = ({ roomState, currentPlayer }) => {
 
   const isAdmin = roomState.gameMode === 'OFFLINE' ? true : currentPlayer.isHost;
   const hasMarkedReady = currentPlayer.votingReady === true;
-  const readyPlayers = roomState.players.filter(p => p.votingReady === true);
-  const notReadyPlayers = roomState.players.filter(p => p.votingReady !== true);
-  const allReady = readyPlayers.length === roomState.players.length;
+  const connectedPlayers = roomState.players.filter(p => !p.disconnected);
+  const disconnectedPlayers = roomState.players.filter(p => p.disconnected);
+  const readyPlayers = connectedPlayers.filter(p => p.votingReady === true);
+  const notReadyPlayers = connectedPlayers.filter(p => p.votingReady !== true);
+  const allReady = readyPlayers.length === connectedPlayers.length;
 
   useEffect(() => {
     // 3 second intro for "First to speak"
@@ -156,15 +158,18 @@ export const Discussion: React.FC<Props> = ({ roomState, currentPlayer }) => {
                 if (!player) return null;
 
                 const isFirstSpeaker = index === 0;
+                const isDisconnected = player.disconnected;
 
                 return (
                   <div
                     key={playerId}
                     className={`
                       flex items-center gap-3 p-2.5 rounded-xl border backdrop-blur-sm transition-all
-                      ${isFirstSpeaker
-                        ? 'bg-purple-900/50 border-purple-500/50 shadow-md'
-                        : 'bg-slate-800/50 border-slate-700/40'
+                      ${isDisconnected
+                        ? 'bg-slate-900/30 border-red-800/40 opacity-60'
+                        : isFirstSpeaker
+                          ? 'bg-purple-900/50 border-purple-500/50 shadow-md'
+                          : 'bg-slate-800/50 border-slate-700/40'
                       }
                     `}
                   >
@@ -181,10 +186,15 @@ export const Discussion: React.FC<Props> = ({ roomState, currentPlayer }) => {
                     <span className="text-lg sm:text-xl">{player.avatar}</span>
 
                     <div className="flex-1">
-                      <span className="font-bold text-sm text-white">
+                      <span className={`font-bold text-sm ${isDisconnected ? 'text-slate-500' : 'text-white'}`}>
                         {player.name}
                       </span>
-                      {isFirstSpeaker && (
+                      {isDisconnected && (
+                        <div className="text-[9px] text-red-400 uppercase tracking-wide font-bold">
+                          Disconnected
+                        </div>
+                      )}
+                      {!isDisconnected && isFirstSpeaker && (
                         <div className="text-[10px] font-bold text-purple-400 uppercase tracking-wider">
                           First Speaker
                         </div>
@@ -212,13 +222,18 @@ export const Discussion: React.FC<Props> = ({ roomState, currentPlayer }) => {
               <div className="w-full bg-slate-700 h-2 rounded-full overflow-hidden mb-2">
                 <div
                   className="bg-blue-500 h-full transition-all duration-500 relative"
-                  style={{ width: `${(readyPlayers.length / roomState.players.length) * 100}%` }}
+                  style={{ width: `${(readyPlayers.length / connectedPlayers.length) * 100}%` }}
                 >
                   <div className="absolute inset-0 bg-white/20 w-full h-full animate-[shimmer_2s_infinite]"></div>
                 </div>
               </div>
               <p className="text-[10px] text-slate-400 text-center font-semibold">
-                {readyPlayers.length} / {roomState.players.length} ready to vote
+                {readyPlayers.length} / {connectedPlayers.length} ready to vote
+                {disconnectedPlayers.length > 0 && (
+                  <span className="block text-[9px] text-red-400 mt-0.5">
+                    ({disconnectedPlayers.length} disconnected)
+                  </span>
+                )}
               </p>
             </div>
 
@@ -278,7 +293,7 @@ export const Discussion: React.FC<Props> = ({ roomState, currentPlayer }) => {
             className="shadow-xl"
           >
             {hasMarkedReady
-              ? `Waiting... (${readyPlayers.length}/${roomState.players.length})`
+              ? `Waiting... (${readyPlayers.length}/${connectedPlayers.length})`
               : 'Start Voting'
             }
           </Button>
@@ -294,7 +309,7 @@ export const Discussion: React.FC<Props> = ({ roomState, currentPlayer }) => {
           className="shadow-xl max-w-2xl mx-auto"
         >
           {hasMarkedReady
-            ? `Waiting... (${readyPlayers.length}/${roomState.players.length})`
+            ? `Waiting... (${readyPlayers.length}/${connectedPlayers.length})`
             : 'Start Voting'
           }
         </Button>

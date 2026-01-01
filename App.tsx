@@ -18,6 +18,8 @@ const App: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [showCredits, setShowCredits] = useState(false);
+  const [showReconnectionBanner, setShowReconnectionBanner] = useState(false);
+  const [wasDisconnected, setWasDisconnected] = useState(false);
 
   useEffect(() => {
     const unsubscribe = gameService.subscribe((state) => {
@@ -55,6 +57,24 @@ const App: React.FC = () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
   }, []);
+
+  // Monitor connection status and show reconnection banner
+  useEffect(() => {
+    if (roomState && roomState.gameMode === 'ONLINE') {
+      // If we detect disconnection during an active game (not in lobby)
+      if (roomState.connectionStatus === 'DISCONNECTED' && roomState.players.length > 0 && roomState.phase !== 'LOBBY') {
+        setShowReconnectionBanner(true);
+        setWasDisconnected(true);
+      }
+      // If reconnected after being disconnected, briefly show success then hide
+      else if (roomState.connectionStatus === 'CONNECTED' && wasDisconnected) {
+        setTimeout(() => {
+          setShowReconnectionBanner(false);
+          setWasDisconnected(false);
+        }, 3000); // Show success message for 3 seconds
+      }
+    }
+  }, [roomState?.connectionStatus, roomState?.gameMode, wasDisconnected]);
 
 
 
@@ -217,6 +237,32 @@ const App: React.FC = () => {
               roomState.phase === GamePhase.VOTING) && (
               <ChatBox roomState={roomState} currentPlayer={currentPlayer} />
             )}
+
+          {/* Reconnection Banner */}
+          {showReconnectionBanner && roomState.gameMode === 'ONLINE' && (
+            <div className={`fixed bottom-20 left-0 right-0 mx-auto max-w-sm px-4 z-50 animate-in slide-in-from-bottom-4 fade-in`}>
+              <div className={`glass-panel rounded-2xl p-4 border ${roomState.connectionStatus === 'CONNECTED'
+                ? 'border-green-500/50 bg-green-900/20'
+                : 'border-yellow-500/50 bg-yellow-900/20'} shadow-2xl`}>
+                <div className="flex items-center gap-3">
+                  <div className={`w-3 h-3 rounded-full ${roomState.connectionStatus === 'CONNECTED'
+                    ? 'bg-green-500 animate-pulse'
+                    : 'bg-yellow-500 animate-pulse'}`}></div>
+                  <div className="flex-1">
+                    <p className={`font-bold text-sm ${roomState.connectionStatus === 'CONNECTED'
+                      ? 'text-green-300' : 'text-yellow-300'}`}>
+                      {roomState.connectionStatus === 'CONNECTED' ? '✓ Reconnected!' : '⚠ Connection Lost'}
+                    </p>
+                    <p className="text-xs text-slate-300">
+                      {roomState.connectionStatus === 'CONNECTED'
+                        ? 'You\'re back in the game'
+                        : 'Attempting to reconnect...'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Footer Credit */}
           <button

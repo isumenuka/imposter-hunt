@@ -198,13 +198,20 @@ class GameLogic {
     }
 
     /**
-     * Check if at least half of players are ready for voting
+     * Check if at least half of connected players are ready for voting
+     * Disconnected players are excluded from the count
      * @param {Array} players 
      * @returns {boolean}
      */
     allPlayersVotingReady(players) {
-        const readyCount = players.filter(p => p.votingReady === true).length;
-        const requiredCount = Math.ceil(players.length / 2); // At least 50%
+        // Filter out disconnected players
+        const connectedPlayers = players.filter(p => !p.disconnected);
+
+        // If no connected players, return false
+        if (connectedPlayers.length === 0) return false;
+
+        const readyCount = connectedPlayers.filter(p => p.votingReady === true).length;
+        const requiredCount = Math.ceil(connectedPlayers.length / 2); // At least 50%
         return readyCount >= requiredCount;
     }
 
@@ -254,12 +261,20 @@ class GameLogic {
     }
 
     /**
-     * Check if all players have voted
+     * Check if all connected players have voted
+     * Disconnected players are automatically skipped
      * @param {Array} players 
      * @returns {boolean}
      */
     allPlayersVoted(players) {
-        return players.every(p => p.vote !== null && p.vote !== undefined);
+        // Filter out disconnected players
+        const connectedPlayers = players.filter(p => !p.disconnected);
+
+        // If no connected players, game should end
+        if (connectedPlayers.length === 0) return true;
+
+        // Check if all connected players have voted
+        return connectedPlayers.every(p => p.vote !== null && p.vote !== undefined);
     }
 
     /**
