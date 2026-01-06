@@ -320,15 +320,15 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
     <div className="flex flex-col items-center justify-center h-full p-6 w-full">
       <div className="w-full space-y-6">
         <div className="text-center space-y-2 mb-8">
-          <div className="text-3xl sm:text-4xl md:text-5xl font-black text-white [text-shadow:_0_0_20px_rgb(168_85_247_/_40%)] tracking-tighter flex flex-col items-center">
+          <div className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter flex flex-col items-center">
             <SplitText
               text="IMPOSTER"
-              className="bg-clip-text [-webkit-background-clip:text] [-webkit-text-fill-color:transparent] bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400"
+              className=""
               delay={100}
             />
             <SplitText
               text="HUNT"
-              className="bg-clip-text [-webkit-background-clip:text] [-webkit-text-fill-color:transparent] bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400"
+              className=""
               delay={500}
             />
           </div>
