@@ -1,17 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Player } from '../types';
+import { Player, RoomState } from '../types';
 import { gameService } from '../services/gameService';
 import { Button } from './Button';
 import { Timer, Lock, Eye, AlertCircle, BadgeCheck } from 'lucide-react';
 import { soundManager } from '../utils/sounds';
+import PixelCard from './PixelCard';
 
 interface Props {
   player: Player;
   secretWord?: string;
   associationWord?: string;
+  roomState: RoomState;
 }
 
-export const SecretReveal: React.FC<Props> = ({ player, secretWord, associationWord }) => {
+export const SecretReveal: React.FC<Props> = ({ player, secretWord, associationWord, roomState }) => {
   const [isHolding, setIsHolding] = useState(false);
   const [progress, setProgress] = useState(0);
   const [revealed, setRevealed] = useState(false);
@@ -60,14 +62,31 @@ export const SecretReveal: React.FC<Props> = ({ player, secretWord, associationW
   };
 
   if (player.isReady) {
+    const notReady = roomState.players.filter(p => !p.isReady);
+
     return (
-      <div className="flex flex-col items-center justify-center h-full p-8 text-center space-y-6">
+      <div className="flex flex-col items-center justify-center h-full p-4 sm:p-6 text-center space-y-3 sm:space-y-4">
         <div className="relative">
-          <Timer size={64} className="animate-bounce text-blue-500 dark:text-blue-400" />
-          <div className="absolute -bottom-2 w-full h-2 bg-black/10 rounded-full blur-sm"></div>
+          <Timer size={48} className="animate-bounce text-blue-500" />
+          <div className="absolute -bottom-1.5 w-full h-1.5 bg-black/10 rounded-full blur-sm"></div>
         </div>
-        <h2 className="text-2xl font-black text-slate-800 dark:text-white">Waiting for others...</h2>
-        <div className="w-48 h-1 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+        <h2 className="text-lg sm:text-xl font-bold text-white">Waiting for others...</h2>
+
+        {notReady.length > 0 && (
+          <div className="w-full max-w-xs space-y-2">
+            <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Not Ready</p>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {notReady.map(p => (
+                <div key={p.id} className="flex items-center gap-1 bg-slate-800/40 px-2 py-1 rounded-lg border border-slate-700/30">
+                  <span className="text-base">{p.avatar}</span>
+                  <span className="text-[10px] text-slate-400 font-medium">{p.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="w-36 h-1 bg-slate-800 rounded-full overflow-hidden">
           <div className="h-full bg-blue-500 w-1/2 animate-[shimmer_1s_infinite] translate-x-[-100%]"></div>
         </div>
       </div>
@@ -79,59 +98,64 @@ export const SecretReveal: React.FC<Props> = ({ player, secretWord, associationW
     const showAssociation = !isInnocent && !!associationWord;
 
     return (
-      <div className="flex flex-col h-full p-6 items-center justify-center animate-in fade-in zoom-in duration-500">
-        <div className={`
-          relative w-full aspect-[3/4] rounded-[2.5rem] p-8 flex flex-col items-center justify-between shadow-2xl overflow-hidden border
-          ${isInnocent
-            ? 'bg-gradient-to-br from-white/80 to-blue-50/50 dark:from-slate-800/80 dark:to-slate-900/80 border-white/50 dark:border-white/10'
-            : 'bg-gradient-to-br from-red-50/80 to-red-100/50 dark:from-red-950/80 dark:to-red-900/80 border-red-500/30'}
-        `}>
-          {/* Background FX */}
-          <div className={`absolute inset-0 opacity-30 ${isInnocent ? 'bg-blue-500/10' : 'bg-red-500/20'}`}></div>
+      <div className="flex flex-col h-full p-3 sm:p-4 items-center justify-center animate-in fade-in zoom-in duration-300">
+        <PixelCard
+          variant={isInnocent ? 'blue' : 'pink'}
+          className="w-full max-w-sm !h-auto !aspect-[3/4]"
+        >
+          <div className={`
+            absolute inset-0 rounded-2xl sm:rounded-3xl p-4 sm:p-6 flex flex-col items-center justify-between overflow-hidden border
+            ${isInnocent
+              ? 'bg-gradient-to-br from-slate-900/90 to-slate-950/90 border-white/10'
+              : 'bg-gradient-to-br from-red-950/90 to-red-900/90 border-red-500/20'}
+          `}>
+            {/* Background FX */}
+            <div className={`absolute inset-0 opacity-20 ${isInnocent ? 'bg-blue-500/10' : 'bg-red-500/20'}`}></div>
 
-          <div className="flex items-center gap-2 mt-4 z-10 bg-white/50 dark:bg-black/30 px-3 py-1 rounded-full border border-white/20">
-            <div className={`w-2 h-2 rounded-full ${isInnocent ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]'} animate-pulse`}></div>
-            <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-500 dark:text-slate-300 flex items-center gap-1">
-              <BadgeCheck size={12} className="text-green-500" />
-              Identity Confirmed
-            </span>
-          </div>
-
-          <div className="text-center z-10 space-y-4">
-            <div className="text-9xl mb-6 transform hover:scale-110 transition-transform filter drop-shadow-xl">
-              {isInnocent ? player.avatar : (
-                <div className="flex items-center justify-center w-full">
-                  <Eye size={96} className="text-red-600 dark:text-red-500" strokeWidth={2} />
-                </div>
-              )}
+            <div className="flex items-center gap-1.5 mt-2 z-10 bg-slate-900/60 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full border border-slate-700/50">
+              <div className={`w-1.5 h-1.5 rounded-full ${isInnocent ? 'bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.7)]' : 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.7)]'} animate-pulse`}></div>
+              <span className="text-[9px] sm:text-[10px] font-semibold tracking-wider uppercase text-slate-400 flex items-center gap-0.5 sm:gap-1">
+                <BadgeCheck size={10} className="text-green-500" />
+                Confirmed
+              </span>
             </div>
 
-            <div className={`
-              px-8 py-3 rounded-2xl border-2 font-black text-3xl tracking-wider uppercase backdrop-blur-sm shadow-lg
+            <div className="text-center z-10 space-y-2 sm:space-y-3">
+              <div className="text-5xl sm:text-6xl mb-3 sm:mb-4 transform hover:scale-105 transition-transform">
+                {isInnocent ? player.avatar : (
+                  <div className="flex items-center justify-center w-full">
+                    <Eye size={64} className="text-red-500 sm:w-20 sm:h-20" strokeWidth={2} />
+                  </div>
+                )}
+              </div>
+
+              <div className={`
+              px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl border font-black text-xl sm:text-2xl tracking-wide uppercase backdrop-blur-sm
               ${isInnocent
-                ? 'border-blue-500/20 text-blue-600 dark:text-blue-400 bg-white/50 dark:bg-slate-800/50'
-                : 'border-red-500/20 text-red-600 dark:text-red-500 bg-red-100/50 dark:bg-red-900/30'}
+                  ? 'border-blue-500/20 text-blue-400 bg-slate-800/60'
+                  : 'border-red-500/20 text-red-500 bg-red-900/30'}
             `}>
-              {isInnocent ? 'Innocent' : 'Imposter'}
+                {isInnocent ? 'Innocent' : 'Imposter'}
+              </div>
             </div>
+
+            {(isInnocent || showAssociation) && (
+              <div className={`
+              w-full p-3 sm:p-4 rounded-xl z-10 text-center backdrop-blur-sm border border-white/10
+              ${isInnocent ? 'bg-slate-900/40' : 'bg-red-900/30'}
+            `}>
+                <p className="text-[9px] sm:text-[10px] uppercase tracking-wider text-slate-500 mb-1 sm:mb-1.5 font-semibold">
+                  {isInnocent ? 'Secret Word' : 'Association Word'}
+                </p>
+                <p className="text-2xl sm:text-3xl font-black text-white leading-tight">
+                  {isInnocent ? secretWord : associationWord}
+                </p>
+              </div>
+            )}
           </div>
+        </PixelCard>
 
-          {(isInnocent || showAssociation) && (
-            <div className={`
-              w-full p-6 rounded-2xl z-10 text-center backdrop-blur-md border border-white/20
-              ${isInnocent ? 'bg-slate-100/50 dark:bg-slate-700/30' : 'bg-red-100/50 dark:bg-red-900/20'}
-            `}>
-              <p className="text-xs uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2 font-bold">
-                {isInnocent ? 'Secret Word' : 'Association Word'}
-              </p>
-              <p className="text-4xl font-black text-slate-900 dark:text-white leading-tight">
-                {isInnocent ? secretWord : associationWord}
-              </p>
-            </div>
-          )}
-        </div>
-
-        <Button fullWidth className="mt-8 shadow-xl" onClick={handleNext}>
+        <Button fullWidth className="mt-4 sm:mt-6" onClick={handleNext}>
           I Understand &rarr;
         </Button>
       </div>
@@ -141,19 +165,19 @@ export const SecretReveal: React.FC<Props> = ({ player, secretWord, associationW
   return (
     <div className="flex flex-col h-full p-6 items-center justify-center space-y-12">
       <div className="text-center space-y-3">
-        <div className="bg-white/50 dark:bg-slate-800/50 px-6 py-2 rounded-full inline-block mb-2 border border-white/20 dark:border-white/5 shadow-sm">
-          <h3 className="text-lg font-bold text-slate-800 dark:text-white">{player.name}</h3>
+        <div className="bg-slate-800/60 px-6 py-2 rounded-full inline-block mb-2 border border-slate-700/50 shadow-sm">
+          <h3 className="text-lg font-bold text-white">{player.name}</h3>
         </div>
-        <div className="flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-bold tracking-widest uppercase">
-          <div className={`w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-600 ${!isHolding ? 'animate-pulse' : ''}`}></div>
+        <div className="flex items-center justify-center gap-2 text-slate-400 text-xs font-bold tracking-widest uppercase">
+          <div className={`w-2 h-2 rounded-full bg-slate-600 ${!isHolding ? 'animate-pulse' : ''}`}></div>
           Security Check
-          <Lock size={12} className="ml-1 text-slate-400 dark:text-slate-600" />
+          <Lock size={12} className="ml-1 text-slate-600" />
         </div>
       </div>
 
       <div className="relative w-72 h-72 select-none group">
         {/* Progress Ring Background */}
-        <div className="absolute inset-0 rounded-full border-[12px] border-slate-200 dark:border-slate-800 opacity-50"></div>
+        <div className="absolute inset-0 rounded-full border-[12px] border-slate-800 opacity-50"></div>
 
         {/* Active Ring */}
         <svg className="w-full h-full transform -rotate-90 absolute inset-0 pointer-events-none">
@@ -178,7 +202,7 @@ export const SecretReveal: React.FC<Props> = ({ player, secretWord, associationW
         {/* Fingerprint Button */}
         <button
           className={`
-            absolute inset-6 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center 
+            absolute inset-6 rounded-full bg-slate-900 flex items-center justify-center 
             active:scale-95 transition-all duration-300 outline-none touch-none no-select shadow-[inset_0_4px_20px_rgba(0,0,0,0.1)]
             ${isHolding ? 'ring-4 ring-blue-500/20' : ''}
           `}
@@ -197,7 +221,7 @@ export const SecretReveal: React.FC<Props> = ({ player, secretWord, associationW
             strokeWidth="1.2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className={`w-40 h-40 transition-colors duration-200 ${isHolding ? 'text-blue-500 dark:text-blue-400' : 'text-slate-300 dark:text-slate-600'}`}
+            className={`w-40 h-40 transition-colors duration-200 ${isHolding ? 'text-blue-400' : 'text-slate-600'}`}
           >
             <path d="M2 12C2 6.5 6.5 2 12 2a10 10 0 0 1 8 6" />
             <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2" />
@@ -217,11 +241,11 @@ export const SecretReveal: React.FC<Props> = ({ player, secretWord, associationW
       </div>
 
       <div className="text-center space-y-2">
-        <h3 className="text-xl font-bold text-slate-800 dark:text-white">Press & hold to reveal</h3>
+        <h3 className="text-xl font-bold text-white">Press & hold to reveal</h3>
         <p className="text-slate-500 text-xs uppercase tracking-widest font-medium">Biometric Access Required</p>
       </div>
 
-      <div className="px-4 py-2 bg-yellow-100/50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-900/30 flex items-center gap-2 text-xs text-yellow-700 dark:text-yellow-400 font-bold">
+      <div className="px-4 py-2 bg-yellow-900/30 rounded-lg border border-yellow-900/40 flex items-center gap-2 text-xs text-yellow-400 font-bold">
         <AlertCircle size={16} className="flex-shrink-0" />
         <span>Keep your screen private from others</span>
       </div>

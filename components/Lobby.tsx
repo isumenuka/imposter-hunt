@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Player, RoomState } from '../types';
 import { gameService } from '../services/gameService';
 import { Button } from './Button';
-import { Users, User, X, UserPlus, Shield } from 'lucide-react';
+import { Users, User, X, UserPlus, Shield, Copy, Check } from 'lucide-react';
+import SplitText from './SplitText';
 
 interface Props {
   roomState: RoomState;
@@ -14,8 +15,41 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
   const [mode, setMode] = useState<'MAIN' | 'JOIN_INPUT'>('MAIN');
   const [inputCode, setInputCode] = useState('');
   const [isBusy, setIsBusy] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
-  const inputClass = "w-full bg-white/60 dark:bg-black/30 p-4 rounded-2xl text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-lg border border-white/30 dark:border-white/10 transition-all";
+  const inputClass = "w-full bg-slate-800/60 p-2.5 sm:p-3 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium text-sm border border-slate-700/50 transition-all";
+
+  const handleCopyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(roomState.roomCode);
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      const shareLink = `${window.location.origin}/?room=${roomState.roomCode}`;
+      await navigator.clipboard.writeText(shareLink);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  // Check for auto-join room code from URL
+  React.useEffect(() => {
+    const autoJoinRoom = sessionStorage.getItem('auto_join_room');
+    if (autoJoinRoom && !currentPlayer && roomState.connectionStatus !== 'CONNECTED') {
+      setInputCode(autoJoinRoom);
+      setMode('JOIN_INPUT');
+      sessionStorage.removeItem('auto_join_room');
+    }
+  }, []);
 
   // === OFFLINE MODE LOBBY ===
   if (roomState.gameMode === 'OFFLINE') {
@@ -28,39 +62,60 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
     };
 
     return (
-      <div className="flex flex-col h-full p-6 space-y-6">
+      <div className="flex flex-col h-full p-3 sm:p-4 space-y-3 sm:space-y-4">
         <div className="flex justify-between items-center">
-          <h1 className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
+          <h1 className="text-base sm:text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500">
             Offline Setup
           </h1>
-          <Button variant="ghost" className="!p-2 text-xs sm:text-sm" onClick={() => gameService.resetToInitialState()}>Exit</Button>
+          <Button variant="ghost" className="!p-1.5 text-[10px] sm:text-xs" onClick={() => gameService.resetToInitialState()}>Exit</Button>
         </div>
 
         {/* Player List */}
-        <div className="flex-1 overflow-y-auto space-y-2 p-2 scroll-smooth">
+        <div className="flex-1 overflow-y-auto space-y-1.5 sm:space-y-2 p-1 scroll-smooth">
           {roomState.players.length === 0 && (
-            <div className="text-center text-slate-500 dark:text-slate-400 py-8 sm:py-12 flex flex-col items-center">
-              <Users size={32} className="mb-2 opacity-50 sm:w-12 sm:h-12" />
-              <span className="text-xs sm:text-sm">Add at least 3 players to start</span>
+            <div className="text-center text-slate-500 dark:text-slate-400 py-6 sm:py-8 flex flex-col items-center">
+              <Users size={24} className="mb-1.5 opacity-40 sm:w-8 sm:h-8" />
+              <span className="text-[10px] sm:text-xs">Add at least 3 players to start</span>
             </div>
           )}
-          {roomState.players.map((p, i) => (
-            <div key={p.id} className="flex items-center bg-white/40 dark:bg-black/20 p-2 sm:p-3 rounded-xl animate-in slide-in-from-left-4 backdrop-blur-sm border border-white/20 dark:border-white/5" style={{ animationDelay: `${i * 50}ms` }}>
-              <span className="text-xl sm:text-2xl mr-2 sm:mr-3 filter drop-shadow-md">{p.avatar}</span>
-              <span className="font-bold text-sm sm:text-base text-slate-800 dark:text-white flex-1">{p.name}</span>
-              <button
-                className="text-red-500 opacity-50 hover:opacity-100 px-2 transition-opacity"
-                onClick={() => gameService.removeOfflinePlayer(p.id)}
-              >
-                <X size={16} />
-              </button>
-            </div>
-          ))}
+          <div className="space-y-2">
+            {roomState.players.map((p, i) => (
+              <div key={p.id} className={`flex items-center gap-2 p-2 rounded-lg border backdrop-blur-sm ${p.disconnected
+                ? 'bg-slate-900/30 border-red-800/40 opacity-60'
+                : 'bg-slate-800/60 border-slate-700/50'
+                }`}>
+                <div className="flex items-center flex-1 gap-2">
+                  <span className={`text-lg ${p.disconnected ? 'opacity-50' : ''}`}>{p.avatar}</span>
+                  <div className="flex flex-col flex-1">
+                    <span className={`font-semibold text-xs ${p.disconnected ? 'text-slate-500' : 'text-white'}`}>
+                      {p.name}
+                    </span>
+                    {p.disconnected && (
+                      <span className="text-[9px] text-red-400 uppercase tracking-wide font-bold">
+                        Disconnected
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {p.isHost && (
+                  <div className="bg-purple-900/50 text-purple-300 px-1.5 py-0.5 rounded text-[9px] font-bold border border-purple-700/50 uppercase tracking-wide">
+                    Host
+                  </div>
+                )}
+                <button
+                  className="text-red-500 opacity-40 hover:opacity-100 px-1.5 transition-opacity"
+                  onClick={() => gameService.removeOfflinePlayer(p.id)}
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Add Player Form */}
-        <div className="bg-white/50 dark:bg-slate-800/40 p-4 rounded-3xl border border-white/40 dark:border-white/10 shadow-lg space-y-4 backdrop-blur-md">
-          <div className="flex gap-2">
+        <div className="bg-slate-800/40 p-2.5 sm:p-3 rounded-xl border border-slate-700/30 space-y-2 backdrop-blur-sm">
+          <div className="flex gap-1.5 sm:gap-2">
             <input
               type="text"
               placeholder="Player Name"
@@ -68,10 +123,10 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAddOfflinePlayer()}
               maxLength={12}
-              className={`flex-1 ${inputClass} !p-3`}
+              className={`flex-1 ${inputClass}`}
             />
-            <Button onClick={handleAddOfflinePlayer} disabled={!name.trim()} className="!py-3 !px-5 shadow-none">
-              <UserPlus size={16} className="sm:w-[18px] sm:h-[18px]" />
+            <Button onClick={handleAddOfflinePlayer} disabled={!name.trim()} className="!py-2 !px-3 sm:!py-2.5 sm:!px-4 shadow-none">
+              <UserPlus size={14} className="sm:w-4 sm:h-4" />
             </Button>
           </div>
         </div>
@@ -82,7 +137,7 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
           onClick={() => gameService.goToSettings()}
           className={canStart ? 'animate-pulse' : ''}
         >
-          Continue to Settings ({roomState.players.length}) &rarr;
+          Continue ({roomState.players.length}) &rarr;
         </Button>
       </div>
     );
@@ -94,38 +149,87 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
     const canStart = roomState.players.length >= 3;
 
     return (
-      <div className="flex flex-col h-full p-6 space-y-6">
-        <div className="bg-white/50 dark:bg-slate-800/40 p-6 rounded-3xl border border-white/50 dark:border-white/10 shadow-xl backdrop-blur-md">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-xl font-bold text-slate-800 dark:text-white">Player Lobby</h1>
-            <div className="bg-blue-100 dark:bg-blue-900/30 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30 flex items-center gap-1">
-              <Users size={12} className="sm:w-[14px] sm:h-[14px]" />
+      <div className="flex flex-col h-full p-3 sm:p-4 space-y-3 sm:space-y-4">
+        <div className="bg-slate-800/40 p-3 sm:p-4 rounded-2xl border border-slate-700/30 backdrop-blur-sm">
+          <div className="flex justify-between items-center mb-2 sm:mb-3">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                className="!p-1.5 text-[10px] sm:text-xs"
+                onClick={() => gameService.leaveRoom()}
+              >
+                ← Back
+              </Button>
+              <h1 className="text-base sm:text-lg font-bold text-white">Player Lobby</h1>
+            </div>
+            <div className="bg-slate-700/50 px-2 py-1 rounded-full text-[10px] sm:text-xs font-semibold text-slate-300 border border-slate-600/50 flex items-center gap-1">
+              <Users size={10} className="sm:w-3 sm:h-3" />
               {roomState.players.length}/12
             </div>
           </div>
-          <div className="text-center p-4 bg-white/60 dark:bg-black/30 rounded-2xl border border-white/30 dark:border-white/5 mb-4 relative overflow-hidden group">
-            <p className="text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-widest mb-0.5 sm:mb-1 font-bold">Room Code</p>
-            <p className="text-2xl sm:text-3xl md:text-4xl font-mono font-black text-blue-600 dark:text-blue-400 tracking-widest select-all relative z-10">{roomState.roomCode}</p>
+          <div className="relative">
+            <div className="text-center p-2.5 sm:p-3 bg-slate-800/60 rounded-xl border border-slate-700/50 mb-2 sm:mb-3 relative overflow-hidden">
+              <p className="text-slate-400 text-[9px] uppercase tracking-wider mb-0.5 font-semibold">Room Code</p>
+              <div className="flex items-center justify-center gap-2">
+                <p className="text-xl sm:text-2xl font-mono font-black text-purple-400 tracking-widest select-all relative z-10">{roomState.roomCode}</p>
+                <button
+                  onClick={handleCopyCode}
+                  className="p-1.5 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600/50 transition-all hover:scale-105 active:scale-95"
+                  title="Copy room code"
+                >
+                  {copiedCode ? (
+                    <Check size={16} className="text-green-400" />
+                  ) : (
+                    <Copy size={16} className="text-slate-300" />
+                  )}
+                </button>
+              </div>
+              {copiedCode && (
+                <div className="absolute top-0 right-0 m-2 bg-green-600 text-white text-[10px] font-bold px-2 py-1 rounded-lg animate-in fade-in slide-in-from-top-2">
+                  Copied!
+                </div>
+              )}
+            </div>
+
+            {/* Share Link Button */}
+            {isHost && (
+              <button
+                onClick={handleCopyLink}
+                className="w-full mt-2 p-2.5 rounded-xl bg-purple-900/30 hover:bg-purple-900/50 border border-purple-700/50 transition-all flex items-center justify-center gap-2 group"
+              >
+                {copiedLink ? (
+                  <>
+                    <Check size={16} className="text-green-400" />
+                    <span className="text-sm font-bold text-green-400">Link Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy size={16} className="text-purple-300 group-hover:scale-110 transition-transform" />
+                    <span className="text-sm font-bold text-purple-300">Share Lobby Link</span>
+                  </>
+                )}
+              </button>
+            )}
           </div>
 
-          <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden mb-2">
+          <div className="w-full bg-slate-700 h-1.5 rounded-full overflow-hidden mb-1.5">
             <div
-              className="bg-gradient-to-r from-green-400 to-green-500 h-full transition-all duration-500 shadow-[0_0_10px_rgba(74,222,128,0.5)]"
+              className="bg-gradient-to-r from-green-500 to-green-600 h-full transition-all duration-500"
               style={{ width: `${Math.min((roomState.players.length / 3) * 100, 100)}%` }}
             />
           </div>
-          <p className={`text-xs font-bold text-center ${canStart ? 'text-green-600 dark:text-green-400' : 'text-slate-400'}`}>
-            {canStart ? 'Ready to begin!' : `${3 - roomState.players.length} more needed`}
+          <p className={`text-[10px] font-semibold text-center ${canStart ? 'text-green-400' : 'text-red-400'}`}>
+            {canStart ? 'Ready!' : `${3 - roomState.players.length} more needed`}
           </p>
         </div>
 
         <div className="flex-1 overflow-y-auto space-y-3 p-1">
           {roomState.players.map((p) => (
-            <div key={p.id} className="flex items-center bg-white/40 dark:bg-slate-800/40 p-2 sm:p-3 rounded-2xl border border-white/40 dark:border-white/5 shadow-sm">
+            <div key={p.id} className="flex items-center bg-slate-800/40 p-2 sm:p-3 rounded-2xl border border-slate-700/30 shadow-sm">
               <span className="text-2xl sm:text-3xl mr-3 sm:mr-4 filter drop-shadow-sm">{p.avatar}</span>
               <div className="flex-1">
-                <p className="font-bold text-sm sm:text-base text-slate-800 dark:text-white">{p.name} {p.id === currentPlayer.id && '(You)'}</p>
-                {p.isHost && <p className="text-[9px] sm:text-[10px] text-yellow-600 dark:text-yellow-400 font-bold bg-yellow-100 dark:bg-yellow-900/30 inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 rounded-full mt-1"><Shield size={9} className="sm:w-[10px] sm:h-[10px]" />HOST</p>}
+                <p className="font-bold text-sm sm:text-base text-white">{p.name} {p.id === currentPlayer.id && '(You)'}</p>
+                {p.isHost && <p className="text-[9px] sm:text-[10px] text-yellow-400 font-bold bg-yellow-900/30 inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 rounded-full mt-1"><Shield size={9} className="sm:w-[10px] sm:h-[10px]" />HOST</p>}
               </div>
             </div>
           ))}
@@ -140,7 +244,7 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
             Continue to Settings &rarr;
           </Button>
         ) : (
-          <div className="text-center text-slate-500 dark:text-slate-400 animate-pulse pb-4 text-sm font-medium">
+          <div className="text-center text-slate-400 animate-pulse pb-4 text-sm font-medium">
             Waiting for host to start...
           </div>
         )}
@@ -156,7 +260,19 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
           <div className="w-16 h-16 border-4 border-blue-200 dark:border-slate-700 rounded-full"></div>
           <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
         </div>
-        <p className="text-slate-500 dark:text-slate-400 font-bold animate-pulse">Connecting...</p>
+        <p className="text-slate-400 font-bold animate-pulse">Connecting...</p>
+
+        {/* Back button to cancel connection */}
+        <Button
+          variant="ghost"
+          onClick={() => {
+            setIsBusy(false); // Reset busy state to allow UI to update
+            gameService.leaveRoom();
+          }}
+          className="!text-xs"
+        >
+          ← Cancel
+        </Button>
       </div>
     );
   }
@@ -204,10 +320,19 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
     <div className="flex flex-col items-center justify-center h-full p-6 w-full">
       <div className="w-full space-y-6">
         <div className="text-center space-y-2 mb-8">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 dark:from-blue-400 dark:via-purple-400 dark:to-pink-400 tracking-tighter filter drop-shadow-sm">
-            IMPOSTER<br />HUNT
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">Deception • Strategy • Party</p>
+          <div className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter flex flex-col items-center">
+            <SplitText
+              text="IMPOSTER"
+              className=""
+              delay={100}
+            />
+            <SplitText
+              text="HUNT"
+              className=""
+              delay={500}
+            />
+          </div>
+          <p className="text-xs sm:text-sm text-slate-400 font-medium">Deception • Strategy • Party</p>
         </div>
 
         <div className="space-y-4">
@@ -221,7 +346,7 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
             className={inputClass}
           />
 
-          <div className="h-px bg-slate-300 dark:bg-slate-700/50 my-6 w-1/2 mx-auto"></div>
+          <div className="h-px bg-slate-700/50 my-6 w-1/2 mx-auto"></div>
 
           {mode === 'MAIN' ? (
             <div className="space-y-3 pt-2">
@@ -247,7 +372,7 @@ export const Lobby: React.FC<Props> = ({ roomState, currentPlayer }) => {
                   value={inputCode}
                   onChange={(e) => setInputCode(e.target.value.toUpperCase())}
                   maxLength={4}
-                  className="w-full bg-white/70 dark:bg-black/40 p-4 rounded-2xl text-center font-mono placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500 font-black text-3xl tracking-[0.5em] uppercase border border-white/40 dark:border-white/10 text-slate-900 dark:text-white"
+                  className="w-full bg-slate-800/60 p-4 rounded-2xl text-center font-mono placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 font-black text-3xl tracking-[0.5em] uppercase border border-slate-700/50 text-white"
                 />
               </div>
               <div className="flex gap-3">

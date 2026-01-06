@@ -93,10 +93,25 @@ io.on('connection', (socket) => {
             // Broadcast to all players in room
             const room = gameManager.getRoom(result.roomCode);
             if (room) {
-                io.to(result.roomCode).emit('room_state', room.roomState);
+                room.roomState.players.forEach(p => {
+                    const playerSocket = room.players.get(p.id);
+                    if (playerSocket) {
+                        const filteredState = gameLogic.filterStateForPlayer(room.roomState, p.id);
+                        io.to(playerSocket).emit('room_state', filteredState);
+                    }
+                });
 
                 if (result.reconnected) {
-                    io.to(result.roomCode).emit('player_reconnected', { playerId: player.id });
+                    const playerData = room.roomState.players.find(p => p.id === player.id);
+                    io.to(result.roomCode).emit('player_reconnected', {
+                        playerId: player.id,
+                        playerName: playerData?.name || player.name
+                    });
+                } else {
+                    io.to(result.roomCode).emit('player_joined', {
+                        playerId: player.id,
+                        playerName: player.name
+                    });
                 }
             }
         } catch (error) {
@@ -294,6 +309,42 @@ io.on('connection', (socket) => {
         }
     });
 
+    // ========== MARK VOTING READY ==========
+    socket.on('mark_voting_ready', (data) => {
+        try {
+            const roomCode = gameManager.getRoomCodeForSocket(socket.id);
+            if (!roomCode) return;
+
+            const room = gameManager.getRoom(roomCode);
+            if (!room) return;
+
+            const playerId = gameManager.getPlayerIdFromSocket(socket.id, roomCode);
+
+            // Mark player as ready for voting
+            const updatedPlayers = gameLogic.markPlayerVotingReady(playerId, room.roomState.players);
+            gameManager.updateRoomState(roomCode, { players: updatedPlayers });
+
+            // Check if all players are ready
+            if (gameLogic.allPlayersVotingReady(updatedPlayers)) {
+                // All players ready, transition to voting
+                gameManager.updateRoomState(roomCode, { phase: 'VOTING' });
+            }
+
+            // Broadcast state to all players
+            room.roomState.players.forEach(p => {
+                const playerSocket = gameManager.getRoom(roomCode).players.get(p.id);
+                if (playerSocket) {
+                    const filteredState = gameLogic.filterStateForPlayer(room.roomState, p.id);
+                    io.to(playerSocket).emit('room_state', filteredState);
+                }
+            });
+
+        } catch (error) {
+            console.error('Error marking voting ready:', error);
+            socket.emit('error', { message: error.message });
+        }
+    });
+
     // ========== START VOTING ==========
     socket.on('start_voting', (data) => {
         try {
@@ -303,6 +354,9 @@ io.on('connection', (socket) => {
             const room = gameManager.getRoom(roomCode);
             if (!room) return;
 
+            // For backward compatibility: allow immediate transition in offline mode
+            // In online mode, this should normally be triggered by mark_voting_ready
+            // but we'll keep it functional for admin override
             gameManager.updateRoomState(roomCode, { phase: 'VOTING' });
 
             // Broadcast to all
@@ -377,6 +431,103 @@ io.on('connection', (socket) => {
 
         } catch (error) {
             console.error('Error resetting game:', error);
+            socket.emit('error', { message: error.message });
+        }
+    });
+
+    // ========== SEND CHAT MESSAGE ==========
+    socket.on('send_chat_message', (data) => {
+        try {
+            const roomCode = gameManager.getRoomCodeForSocket(socket.id);
+            if (!roomCode) return;
+
+            const room = gameManager.getRoom(roomCode);
+            if (!room) return;
+
+            const playerId = gameManager.getPlayerIdFromSocket(socket.id, roomCode);
+            const player = room.roomState.players.find(p => p.id === playerId);
+
+            if (!player) return;
+
+            // Validate message
+            if (!data.message || typeof data.message !== 'string' || data.message.trim().length === 0) {
+                return;
+            }
+
+            // Create chat message
+            const chatMessage = {
+                id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                playerId: player.id,
+                playerName: player.name,
+                avatar: player.avatar,
+                message: data.message.trim().substring(0, 500), // Limit to 500 characters
+                timestamp: Date.now()
+            };
+
+            // Add message to room state
+            const messages = room.roomState.messages || [];
+            messages.push(chatMessage);
+
+            gameManager.updateRoomState(roomCode, { messages });
+
+            // Broadcast updated state to all players in room
+            io.to(roomCode).emit('room_state', room.roomState);
+
+        } catch (error) {
+            console.error('Error sending chat message:', error);
+        }
+    });
+
+    // ========== RE-RANDOMIZE SECRET WORD ==========
+    socket.on('re_randomize_secret_word', async (data) => {
+        try {
+            const roomCode = gameManager.getRoomCodeForSocket(socket.id);
+            if (!roomCode) return;
+
+            const room = gameManager.getRoom(roomCode);
+            if (!room) return;
+
+            // Verify requester is host
+            const playerId = gameManager.getPlayerIdFromSocket(socket.id, roomCode);
+            const player = room.roomState.players.find(p => p.id === playerId);
+
+            if (!player?.isHost) {
+                socket.emit('error', { message: 'Only host can re-randomize' });
+                return;
+            }
+
+            // Only allow during DISCUSSION or VOTING phase
+            if (room.roomState.phase !== 'DISCUSSION' && room.roomState.phase !== 'VOTING') {
+                socket.emit('error', { message: 'Can only re-randomize during discussion or voting' });
+                return;
+            }
+
+            // Re-randomize secret word (async due to AI generation)
+            const newGameState = await gameLogic.reRandomizeSecretWord(
+                room.roomState.config,
+                room.roomState.players
+            );
+
+            // Keep firstSpeakerId and startTime
+            gameManager.updateRoomState(roomCode, {
+                ...newGameState,
+                firstSpeakerId: room.roomState.firstSpeakerId,
+                startTime: Date.now()
+            });
+
+            // Send filtered state to each player
+            room.roomState.players.forEach(p => {
+                const playerSocket = gameManager.getRoom(roomCode).players.get(p.id);
+                if (playerSocket) {
+                    const filteredState = gameLogic.filterStateForPlayer(room.roomState, p.id);
+                    io.to(playerSocket).emit('room_state', filteredState);
+                }
+            });
+
+            console.log(`🔄 Secret word re-randomized in room ${roomCode}`);
+
+        } catch (error) {
+            console.error('Error re-randomizing secret word:', error);
             socket.emit('error', { message: error.message });
         }
     });

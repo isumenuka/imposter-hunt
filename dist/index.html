@@ -66,6 +66,7 @@
     ::-webkit-scrollbar-thumb {
       background: rgba(100, 100, 100, 0.3);
       border-radius: 3px;
+      -webkit-transition: background 0.2s;
       transition: background 0.2s;
     }
 
@@ -84,7 +85,8 @@
     }
 
     .no-select {
-      user-select: none;
+      -moz-user-select: none;
+           user-select: none;
       -webkit-user-select: none;
     }
 
@@ -257,6 +259,7 @@
       animation-delay: 2.2s, 4.5s;
     }
   </style>
+
   <script type="importmap">
 {
   "imports": {
@@ -269,12 +272,12 @@
   }
 }
 </script>
-  <link rel="stylesheet" href="/index.css">
+  <script type="module" crossorigin src="./assets/index-etpPGllu.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-aNRjOXAZ.css">
 </head>
 
 <body>
-  <div id="root"></div>
-  <script type="module" src="/index.tsx"></script>
+  <div id="root"></div>
 
   <!-- Service Worker Registration -->
   <script>

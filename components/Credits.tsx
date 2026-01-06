@@ -19,45 +19,45 @@ interface CreditsProps {
 
 export const Credits: React.FC<CreditsProps> = ({ onClose }) => {
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 animate-in fade-in duration-200">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                className="absolute inset-0 bg-black/70 backdrop-blur-sm"
                 onClick={onClose}
             />
 
             {/* Credits Modal */}
-            <div className="relative w-full max-w-sm sm:max-w-md glass-panel rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="relative w-full max-w-xs sm:max-w-sm glass-panel rounded-xl sm:rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[85vh]">
                 {/* Animated Background Gradient */}
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                    <div className="absolute -top-24 -right-24 w-64 h-64 bg-purple-500/30 rounded-full mix-blend-screen filter blur-3xl animate-pulse" />
-                    <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-blue-500/30 rounded-full mix-blend-screen filter blur-3xl animate-pulse animation-delay-2000" />
+                    <div className="absolute -top-16 -right-16 w-48 h-48 bg-purple-900/20 rounded-full mix-blend-screen filter blur-3xl animate-pulse" />
+                    <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-blue-900/20 rounded-full mix-blend-screen filter blur-3xl animate-pulse animation-delay-2000" />
                 </div>
 
                 {/* Content - Scrollable */}
-                <div className="relative z-10 overflow-y-auto flex-1 p-3 sm:p-6">
+                <div className="relative z-10 overflow-y-auto flex-1 p-2 sm:p-3">
                     {/* Close Button - Sticky */}
                     <button
                         onClick={onClose}
-                        className="sticky top-0 float-right text-slate-400 hover:text-white transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 z-20 bg-slate-900/80 backdrop-blur-sm"
+                        className="sticky top-0 float-right text-slate-500 hover:text-white transition-colors w-6 h-6 flex items-center justify-center rounded-full hover:bg-white/5 z-20 bg-black/50 backdrop-blur-sm"
                         aria-label="Close"
                     >
-                        <X size={16} />
+                        <X size={14} />
                     </button>
 
                     {/* Header */}
-                    <div className="text-center mb-4 sm:mb-6">
-                        <div className="flex items-center justify-center mb-2 sm:mb-3">
-                            <div className="p-2 sm:p-3 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl sm:rounded-2xl border border-purple-500/30 animate-pulse">
-                                <Gamepad2 size={32} className="text-purple-400 sm:w-10 sm:h-10" strokeWidth={2.5} />
+                    <div className="text-center mb-3 sm:mb-4">
+                        <div className="flex items-center justify-center mb-1.5 sm:mb-2">
+                            <div className="p-1.5 sm:p-2 bg-gradient-to-br from-purple-900/30 to-pink-900/30 rounded-lg sm:rounded-xl border border-purple-800/40 animate-pulse">
+                                <Gamepad2 size={24} className="text-purple-500 sm:w-7 sm:h-7" strokeWidth={2} />
                             </div>
                         </div>
-                        <h2 className="text-2xl sm:text-3xl font-black text-white mb-1 sm:mb-2">
+                        <h2 className="text-lg sm:text-xl font-black text-white mb-0.5 sm:mb-1">
                             Imposter Hunt
                         </h2>
-                        <p className="text-slate-400 text-xs sm:text-sm flex items-center justify-center gap-1">
-                            <Sparkles size={12} className="text-purple-400" />
-                            A Multiplayer Party Game
+                        <p className="text-slate-500 text-[10px] sm:text-xs flex items-center justify-center gap-0.5 sm:gap-1">
+                            <Sparkles size={10} className="text-purple-500" />
+                            Multiplayer Party Game
                         </p>
                     </div>
 
@@ -65,20 +65,20 @@ export const Credits: React.FC<CreditsProps> = ({ onClose }) => {
                     <div className="w-full h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent mb-3 sm:mb-4" />
 
                     {/* Credits Section */}
-                    <div className="space-y-2 sm:space-y-3">
+                    <div className="space-y-1.5 sm:space-y-2">
                         {/* Created By */}
-                        <div className="text-center space-y-1.5 sm:space-y-2">
-                            <p className="text-[10px] sm:text-xs text-slate-500 uppercase tracking-widest font-bold">
+                        <div className="text-center space-y-1 sm:space-y-1.5">
+                            <p className="text-[9px] sm:text-[10px] text-slate-600 uppercase tracking-wider font-semibold">
                                 Created By
                             </p>
                             <div className="relative inline-block">
-                                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg sm:rounded-xl blur-md sm:blur-lg opacity-50 animate-pulse" />
-                                <div className="relative bg-gradient-to-r from-purple-500 to-pink-500 text-white font-black text-lg sm:text-xl px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl shadow-xl">
+                                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-md sm:rounded-lg blur-sm opacity-40" />
+                                <div className="relative bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black text-sm sm:text-base px-3 py-1.5 sm:px-4 sm:py-2 rounded-md sm:rounded-lg">
                                     isumenuka
                                 </div>
                             </div>
-                            <p className="text-slate-400 text-[10px] sm:text-xs mt-1 sm:mt-1.5 flex items-center justify-center gap-1">
-                                <Palette size={12} className="text-purple-400" />
+                            <p className="text-slate-500 text-[9px] sm:text-[10px] mt-0.5 sm:mt-1 flex items-center justify-center gap-0.5">
+                                <Palette size={10} className="text-purple-500" />
                                 Developer & Designer
                             </p>
                         </div>
@@ -142,7 +142,7 @@ export const Credits: React.FC<CreditsProps> = ({ onClose }) => {
                         {/* Version & GitHub */}
                         <div className="text-center space-y-2 sm:space-y-2.5 pt-2 sm:pt-3">
                             <p className="text-[10px] sm:text-xs text-slate-500">
-                                Version 1.0.0
+                                Version 2.0.0
                             </p>
                             <a
                                 href="https://github.com/isumenuka/imposter-hunt"

@@ -15,6 +15,9 @@ class GameManager {
         // playerToSocket: Map playerId to socket.id for reconnection
         this.playerToSocket = new Map();
 
+        // Reconnection timeout (5 minutes)
+        this.RECONNECTION_TIMEOUT = 5 * 60 * 1000;
+
         // Start cleanup interval (every 5 minutes)
         this.startCleanupInterval();
 
@@ -26,7 +29,7 @@ class GameManager {
      * @returns {string}
      */
     generateRoomCode() {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const chars = '0123456789';
         let code;
 
         do {
@@ -106,8 +109,12 @@ class GameManager {
         const existingPlayer = room.roomState.players.find(p => p.id === playerId);
 
         if (existingPlayer) {
-            // Reconnection
+            // Reconnection - allow regardless of phase
             console.log(`🔄 Player ${player.name} reconnecting to ${roomCode}`);
+
+            // Clear disconnection state
+            existingPlayer.disconnected = false;
+            existingPlayer.disconnectedAt = undefined;
 
             // Update socket mapping
             room.players.set(playerId, socket.id);
@@ -119,12 +126,19 @@ class GameManager {
             return { roomCode, roomState: room.roomState, reconnected: true };
         }
 
+        // Prevent new players from joining if game is in progress
+        const activePhases = ['REVEAL', 'DISCUSSION', 'VOTING', 'RESULTS'];
+        if (activePhases.includes(room.roomState.phase)) {
+            return { error: 'Game already in progress. Cannot join mid-game.' };
+        }
+
         // New player joining
         const newPlayer = {
             ...player,
             id: playerId,
             isHost: false,
-            socketId: socket.id
+            socketId: socket.id,
+            disconnected: false
         };
 
         room.roomState.players.push(newPlayer);
@@ -195,9 +209,9 @@ class GameManager {
     }
 
     /**
-     * Remove a player from a room
+     * Mark a player as disconnected (not removed)
      * @param {string} socketId 
-     * @returns {Object|null} Room info if player was removed
+     * @returns {Object|null} Room info if player was disconnected
      */
     removePlayer(socketId) {
         const roomCode = this.socketToRoom.get(socketId);
@@ -210,38 +224,85 @@ class GameManager {
         if (!playerId) return null;
 
         const player = room.roomState.players.find(p => p.id === playerId);
+        if (!player) return null;
 
-        // Remove from maps
+        // Remove from socket maps
         this.socketToRoom.delete(socketId);
         this.playerToSocket.delete(playerId);
         room.players.delete(playerId);
 
-        // Remove from room state (but keep for potential reconnection for 5 minutes)
-        // For now, we'll just mark them as disconnected
-        console.log(`❌ Player ${player?.name} disconnected from room ${roomCode}`);
+        console.log(`❌ Player ${player.name} disconnected from room ${roomCode}`);
 
-        // If host left and room is in lobby, assign new host
-        if (player?.isHost && room.roomState.phase === 'LOBBY') {
-            const remainingPlayers = room.roomState.players.filter(p => p.id !== playerId);
+        // If in LOBBY, remove player immediately
+        if (room.roomState.phase === 'LOBBY') {
+            // If host left, assign new host
+            if (player.isHost) {
+                const remainingPlayers = room.roomState.players.filter(p => p.id !== playerId);
 
-            if (remainingPlayers.length > 0) {
-                remainingPlayers[0].isHost = true;
-                room.roomState.players = remainingPlayers;
-                console.log(`👑 New host: ${remainingPlayers[0].name}`);
+                if (remainingPlayers.length > 0) {
+                    remainingPlayers[0].isHost = true;
+                    room.roomState.players = remainingPlayers;
+                    console.log(`👑 New host: ${remainingPlayers[0].name}`);
+                } else {
+                    // No players left, delete room
+                    this.rooms.delete(roomCode);
+                    console.log(`🗑️  Room ${roomCode} deleted (empty)`);
+                    return { roomCode, deleted: true };
+                }
             } else {
-                // No players left, delete room
-                this.rooms.delete(roomCode);
-                console.log(`🗑️  Room ${roomCode} deleted (empty)`);
-                return { roomCode, deleted: true };
+                // Remove non-host player from lobby
+                room.roomState.players = room.roomState.players.filter(p => p.id !== playerId);
             }
         } else {
-            // Remove player from state
-            room.roomState.players = room.roomState.players.filter(p => p.id !== playerId);
+            // Game in progress - mark as disconnected, don't remove
+            player.disconnected = true;
+            player.disconnectedAt = Date.now();
+
+            // If host disconnected during game, transfer host to first connected player
+            if (player.isHost) {
+                const newHost = room.roomState.players.find(p => p.id !== playerId && !p.disconnected);
+                if (newHost) {
+                    player.isHost = false;
+                    newHost.isHost = true;
+                    console.log(`👑 Host transferred to: ${newHost.name}`);
+                }
+            }
+
+            // Schedule permanent removal after timeout period
+            setTimeout(() => {
+                this.permanentlyRemovePlayer(roomCode, playerId);
+            }, this.RECONNECTION_TIMEOUT);
         }
 
         room.lastActivity = Date.now();
 
         return { roomCode, playerId, player, roomState: room.roomState };
+    }
+
+    /**
+     * Permanently remove a disconnected player after timeout
+     * @param {string} roomCode 
+     * @param {string} playerId 
+     */
+    permanentlyRemovePlayer(roomCode, playerId) {
+        const room = this.rooms.get(roomCode);
+        if (!room) return;
+
+        const player = room.roomState.players.find(p => p.id === playerId);
+
+        // Only remove if still disconnected (player didn't reconnect)
+        if (player && player.disconnected) {
+            console.log(`🗑️  Permanently removing ${player.name} from room ${roomCode} (timeout)`);
+
+            room.roomState.players = room.roomState.players.filter(p => p.id !== playerId);
+
+            // If no connected players left, delete room
+            const connectedPlayers = room.roomState.players.filter(p => !p.disconnected);
+            if (connectedPlayers.length === 0) {
+                this.rooms.delete(roomCode);
+                console.log(`🗑️  Room ${roomCode} deleted (no connected players)`);
+            }
+        }
     }
 
     /**

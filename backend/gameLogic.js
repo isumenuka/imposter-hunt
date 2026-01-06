@@ -1,4 +1,4 @@
-import { aiService } from './aiService.js';
+import { getGameContent } from '../data/gameContent.js';
 
 /**
  * Server-side game logic for Imposter Guess Word
@@ -12,7 +12,55 @@ const GAME_CATEGORIES = [
 
 const AVATARS = ['🦊', '🐼', '🦁', '🐸', '🐙', '🦄', '🐲', '🦉', '🐺', '🦈'];
 
+/**
+ * Fisher-Yates shuffle algorithm for fair randomization
+ * @param {Array} array - Array to shuffle
+ * @returns {Array} Shuffled array
+ */
+function fisherYatesShuffle(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+}
+
 class GameLogic {
+    constructor() {
+        // Track used words to prevent repetition across games
+        this.wordHistory = [];
+        this.MAX_HISTORY_SIZE = 30;
+    }
+
+    /**
+     * Add word to history and maintain size limit
+     * @param {string} word 
+     */
+    addToWordHistory(word) {
+        const normalizedWord = word.toLowerCase().trim();
+
+        // Remove if already exists (to keep most recent)
+        this.wordHistory = this.wordHistory.filter(w => w !== normalizedWord);
+
+        // Add to front
+        this.wordHistory.unshift(normalizedWord);
+
+        // Maintain max size (FIFO)
+        if (this.wordHistory.length > this.MAX_HISTORY_SIZE) {
+            this.wordHistory.pop();
+        }
+    }
+
+    /**
+     * Check if word is in history
+     * @param {string} word 
+     * @returns {boolean}
+     */
+    isWordInHistory(word) {
+        return this.wordHistory.includes(word.toLowerCase().trim());
+    }
+
     /**
      * Assign random unique avatars to players
      * @param {Array} players 
@@ -89,8 +137,10 @@ class GameLogic {
             Math.floor(Math.random() * availableCategories.length)
         ];
 
-        // Generate word and association word
-        const { word, associationWord } = await aiService.generateGameContent(selectedCategory);
+        // Get word from pre-built content (uses shuffle bag for uniqueness)
+        const content = getGameContent(selectedCategory);
+        const word = content.word;
+        const associationWord = content.associationWord;
 
         return {
             players: playersWithRoles,
@@ -111,11 +161,58 @@ class GameLogic {
      */
     startDiscussion(players) {
         const randomIndex = Math.floor(Math.random() * players.length);
+        const firstSpeakerId = players[randomIndex].id;
+
+        // Generate speaking order: first speaker + shuffled remaining players
+        const remainingPlayers = players.filter(p => p.id !== firstSpeakerId);
+        const shuffledRemaining = fisherYatesShuffle(remainingPlayers);
+        const speakingOrder = [firstSpeakerId, ...shuffledRemaining.map(p => p.id)];
+
+        // Reset votingReady for all players
+        const playersWithResetVotingReady = players.map(p => ({
+            ...p,
+            votingReady: false
+        }));
+
         return {
             phase: 'DISCUSSION',
-            firstSpeakerId: players[randomIndex].id,
-            startTime: Date.now()
+            firstSpeakerId,
+            speakingOrder,
+            startTime: Date.now(),
+            players: playersWithResetVotingReady
         };
+    }
+
+    /**
+     * Mark a player as ready for voting
+     * @param {string} playerId 
+     * @param {Array} players 
+     * @returns {Array} Updated players
+     */
+    markPlayerVotingReady(playerId, players) {
+        return players.map(player =>
+            player.id === playerId
+                ? { ...player, votingReady: true }
+                : player
+        );
+    }
+
+    /**
+     * Check if at least half of connected players are ready for voting
+     * Disconnected players are excluded from the count
+     * @param {Array} players 
+     * @returns {boolean}
+     */
+    allPlayersVotingReady(players) {
+        // Filter out disconnected players
+        const connectedPlayers = players.filter(p => !p.disconnected);
+
+        // If no connected players, return false
+        if (connectedPlayers.length === 0) return false;
+
+        const readyCount = connectedPlayers.filter(p => p.votingReady === true).length;
+        const requiredCount = Math.ceil(connectedPlayers.length / 2); // At least 50%
+        return readyCount >= requiredCount;
     }
 
     /**
@@ -164,12 +261,20 @@ class GameLogic {
     }
 
     /**
-     * Check if all players have voted
+     * Check if all connected players have voted
+     * Disconnected players are automatically skipped
      * @param {Array} players 
      * @returns {boolean}
      */
     allPlayersVoted(players) {
-        return players.every(p => p.vote !== null && p.vote !== undefined);
+        // Filter out disconnected players
+        const connectedPlayers = players.filter(p => !p.disconnected);
+
+        // If no connected players, game should end
+        if (connectedPlayers.length === 0) return true;
+
+        // Check if all connected players have voted
+        return connectedPlayers.every(p => p.vote !== null && p.vote !== undefined);
     }
 
     /**
@@ -269,6 +374,36 @@ class GameLogic {
     }
 
     /**
+     * Re-randomize secret word (keep roles intact)
+     * @param {Object} config - Current game config
+     * @param {Array} players - Current players with roles
+     * @returns {Promise<Object>} Updated game state
+     */
+    async reRandomizeSecretWord(config, players) {
+        // Get new word from pre-built content (uses shuffle bag for uniqueness)
+        const content = getGameContent(config.category);
+        const word = content.word;
+        const associationWord = content.associationWord;
+
+        // Reset player ready states and votes, keep roles
+        const resetPlayers = players.map(p => ({
+            ...p,
+            isReady: false,
+            vote: undefined
+        }));
+
+        return {
+            phase: 'REVEAL',
+            players: resetPlayers,
+            config: {
+                ...config,
+                word,
+                associationWord: config.imposterClueEnabled ? associationWord : undefined
+            }
+        };
+    }
+
+    /**
      * Reset game to lobby state
      * @param {Array} players 
      * @param {Object} config 
@@ -283,6 +418,7 @@ class GameLogic {
             role: undefined,
             vote: undefined,
             isReady: undefined,
+            votingReady: false,
             selectedCategories: undefined
         }));
 
@@ -297,7 +433,8 @@ class GameLogic {
             },
             startTime: undefined,
             firstSpeakerId: undefined,
-            winners: undefined
+            winners: undefined,
+            messages: [] // Clear chat history
         };
     }
 }

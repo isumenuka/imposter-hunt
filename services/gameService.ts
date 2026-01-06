@@ -8,9 +8,9 @@ const STORAGE_KEY = 'imposter-hunt-game-state';
 const PLAYER_ID_KEY = 'imposter_player_id';
 const SAVE_DEBOUNCE_MS = 500;
 
-// Initial empty state
+// Initial state for fresh startup - shows main menu, does not auto-connect
 const initialState: RoomState = {
-    gameMode: 'ONLINE',
+    gameMode: 'ONLINE', // Start in online mode to show main menu
     roomCode: '',
     players: [],
     phase: GamePhase.LOBBY,
@@ -21,7 +21,7 @@ const initialState: RoomState = {
         imposterCount: DEFAULT_IMPOSTER_COUNT,
         imposterClueEnabled: DEFAULT_ASSOCIATION_WORD_ENABLED,
     },
-    connectionStatus: 'DISCONNECTED',
+    connectionStatus: 'DISCONNECTED', // Don't auto-connect
     activePlayerId: undefined,
     isTurnHidden: false
 };
@@ -49,27 +49,10 @@ class GameService {
             sessionStorage.setItem(PLAYER_ID_KEY, this.playerId);
         }
 
-        // Try to restore state from localStorage
-        const savedState = this.loadState();
-
-        // Validate restored state
-        if (savedState && savedState.gameMode === 'ONLINE' && savedState.phase !== GamePhase.LOBBY) {
-            const playerExists = savedState.players.some(p => p.id === this.playerId);
-            if (!playerExists) {
-                console.log('Player not found in saved state, resetting to lobby');
-                this.clearSavedState();
-                this.state = initialState;
-            } else {
-                this.state = savedState;
-                // If we have a saved online state, attempt to reconnect
-                if (this.state.roomCode) {
-                    console.log(`Attempting to reconnect to room ${this.state.roomCode}`);
-                    this.setState({ connectionStatus: 'CONNECTING' });
-                }
-            }
-        } else {
-            this.state = savedState || initialState;
-        }
+        // CRITICAL FIX: Always start fresh to prevent stuck "connecting" screens
+        // Clear any previous saved states and use clean initial state
+        this.clearSavedState();
+        this.state = { ...initialState };
 
         // Set up state persistence listeners
         this.setupStatePersistence();
@@ -165,6 +148,43 @@ class GameService {
         console.log('Game reset to initial state');
     }
 
+    public leaveRoom() {
+        // Disconnect from current room and return to main menu
+        console.log('Leaving room...');
+
+        // CRITICAL: Immediately reset state to show main menu (not connecting spinner)
+        this.clearSavedState();
+
+        this.state = {
+            gameMode: 'ONLINE',
+            roomCode: '',
+            players: [],
+            phase: GamePhase.LOBBY,
+            config: {
+                category: 'Everything',
+                selectedCategories: [],
+                roundDuration: DEFAULT_ROUND_DURATION,
+                imposterCount: DEFAULT_IMPOSTER_COUNT,
+                imposterClueEnabled: DEFAULT_ASSOCIATION_WORD_ENABLED,
+            },
+            connectionStatus: 'DISCONNECTED',
+            activePlayerId: undefined,
+            isTurnHidden: false
+        };
+
+        // Notify UI immediately so main menu shows
+        this.notify();
+
+        // Then handle socket cleanup
+        if (this.socket && this.socket.connected) {
+            this.socket.emit('leave_room');
+            this.socket.disconnect();
+            this.socket = null;
+        }
+
+        console.log('Left room, returned to main menu');
+    }
+
     // =========================================
     // SOCKET.IO CONNECTION
     // =========================================
@@ -230,10 +250,17 @@ class GameService {
             this.reconnectAttempts++;
 
             if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+                console.error('❌ Max reconnection attempts reached. Disconnecting...');
                 this.setState({
                     connectionStatus: 'DISCONNECTED',
-                    error: 'Failed to connect to server. Please check your internet connection.'
+                    error: 'Failed to connect to server. Please check that the backend server is running.'
                 });
+                // Reset reconnect attempts
+                this.reconnectAttempts = 0;
+                // Disconnect the socket to stop further attempts
+                if (this.socket) {
+                    this.socket.disconnect();
+                }
             }
         });
 
@@ -256,6 +283,7 @@ class GameService {
     // =========================================
 
     public async createGame(player: Player): Promise<string> {
+        this.setState({ gameMode: 'ONLINE' }); // Switch to online mode
         this.connectSocket();
 
         return new Promise((resolve, reject) => {
@@ -279,6 +307,7 @@ class GameService {
     }
 
     public async joinGame(roomCode: string, player: Player): Promise<void> {
+        this.setState({ gameMode: 'ONLINE' }); // Switch to online mode
         this.connectSocket();
 
         return new Promise((resolve, reject) => {
@@ -457,10 +486,17 @@ class GameService {
 
         if (nextIndex >= this.state.players.length) {
             // All players have seen their role, move to discussion
+            // Generate speaking order: first speaker + shuffled remaining players
+            const firstSpeakerId = this.state.firstSpeakerId!;
+            const remainingPlayers = this.state.players.filter(p => p.id !== firstSpeakerId);
+            const shuffledRemaining = fisherYatesShuffle(remainingPlayers);
+            const speakingOrder = [firstSpeakerId, ...shuffledRemaining.map(p => p.id)];
+
             this.setState({
                 phase: GamePhase.DISCUSSION,
                 activePlayerId: undefined,
-                isTurnHidden: false
+                isTurnHidden: false,
+                speakingOrder
             });
         } else {
             // Move to next player
@@ -469,6 +505,17 @@ class GameService {
                 isTurnHidden: true
             });
         }
+    }
+
+    public markVotingReady() {
+        // Offline mode: not applicable (no voting readiness tracking in offline)
+        if (this.state.gameMode === 'OFFLINE') {
+            // Just start voting immediately in offline mode
+            this.startVoting();
+            return;
+        }
+        // Online mode: emit to server
+        this.emitAction('mark_voting_ready');
     }
 
     public startVoting() {
@@ -578,6 +625,62 @@ class GameService {
         }
         // Online mode: emit to server
         this.emitAction('reset_game');
+    }
+
+    public reRandomizeSecretWord() {
+        // Offline mode: handle locally
+        if (this.state.gameMode === 'OFFLINE' &&
+            (this.state.phase === GamePhase.DISCUSSION || this.state.phase === GamePhase.VOTING)) {
+
+            // Get a new random word from the same category
+            const { word, associationWord } = getGameContent(this.state.config.category);
+
+            // Reset to REVEAL phase so everyone can see their new word
+            // Keep all roles intact, just show them the new word
+            const playersWithReset = this.state.players.map(p => ({
+                ...p,
+                isReady: false,
+                vote: undefined
+            }));
+
+            // Update config with new word and reset to reveal phase
+            this.setState({
+                phase: GamePhase.REVEAL,
+                players: playersWithReset,
+                config: {
+                    ...this.state.config,
+                    word,
+                    associationWord: this.state.config.imposterClueEnabled ? associationWord : undefined
+                },
+                activePlayerId: playersWithReset[0].id,
+                isTurnHidden: true,
+                startTime: Date.now()
+            });
+
+            console.log(`🔄 Secret word re-randomized to: ${word} - Restarting reveals`);
+            return;
+        }
+
+        // Online mode: emit to server
+        if (this.state.gameMode === 'ONLINE') {
+            this.emitAction('re_randomize_secret_word');
+        }
+    }
+
+    public sendChatMessage(message: string) {
+        // Only available in online mode
+        if (this.state.gameMode === 'OFFLINE') {
+            console.warn('Chat not available in offline mode');
+            return;
+        }
+
+        // Validate message
+        if (!message || message.trim().length === 0) {
+            return;
+        }
+
+        // Emit to server
+        this.emitAction('send_chat_message', { message: message.trim() });
     }
 
     public revealTurn() {

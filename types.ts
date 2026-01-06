@@ -7,6 +7,15 @@ export enum GamePhase {
   RESULTS = 'RESULTS'
 }
 
+export interface ChatMessage {
+  id: string;
+  playerId: string;
+  playerName: string;
+  avatar: string;
+  message: string;
+  timestamp: number;
+}
+
 export interface Player {
   id: string;
   name: string;
@@ -15,7 +24,10 @@ export interface Player {
   role?: 'innocent' | 'imposter';
   vote?: string; // ID of the player they voted for
   isReady?: boolean; // Used during reveal phase
+  votingReady?: boolean; // Used to track if player wants to start voting
   selectedCategories?: string[]; // Categories this player wants to play
+  disconnected?: boolean; // Player is currently disconnected
+  disconnectedAt?: number; // Timestamp when player disconnected
 }
 
 export interface GameConfig {
@@ -36,9 +48,11 @@ export interface RoomState {
   config: GameConfig;
   startTime?: number;
   firstSpeakerId?: string;
+  speakingOrder?: string[]; // Array of player IDs representing speaking order
   winners?: 'innocent' | 'imposter';
   connectionStatus?: 'CONNECTED' | 'DISCONNECTED' | 'CONNECTING';
   error?: string; // Error message for failed operations
+  messages?: ChatMessage[]; // Chat messages for online multiplayer
 
   // Offline Mode Specifics
   activePlayerId?: string; // Who is currently holding the phone
@@ -57,13 +71,15 @@ export type GameActionType =
   | 'GO_TO_SETTINGS'
   | 'START_GAME'
   | 'PLAYER_READY'
+  | 'MARK_VOTING_READY'
   | 'START_VOTING'
   | 'CAST_VOTE'
   | 'RESET_GAME'
   // Offline specific
   | 'ADD_OFFLINE_PLAYER'
   | 'NEXT_OFFLINE_TURN'
-  | 'REVEAL_TURN'; // User clicked "I am ready" to see their turn
+  | 'REVEAL_TURN' // User clicked "I am ready" to see their turn
+  | 'RE_RANDOMIZE_SECRET_WORD'; // Admin re-randomizes secret word during game
 
 export interface GameAction {
   type: GameActionType;
